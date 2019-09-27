@@ -80,40 +80,67 @@ module thinpad_top(
     output wire video_de           //行数据有效信号，用于区分消隐区
 );
 
-reg[1:0] status = 2'b00;
+// 不使用内存、串口时，禁用其使能信号
+assign base_ram_ce_n = 1'b1;
+assign base_ram_oe_n = 1'b1;
+assign base_ram_we_n = 1'b1;
+
+assign ext_ram_ce_n = 1'b1;
+assign ext_ram_oe_n = 1'b1;
+assign ext_ram_we_n = 1'b1;
+
+assign uart_rdn = 1'b1;
+assign uart_wrn = 1'b1;
+
+/* begin ALU */
+
+reg[1:0] status;
 reg[15:0] a, b;
 reg[3:0] op;
 wire of;
-reg[15:0] out;
+wire[15:0] out;
+reg[15:0] led_bits;
+reg of_reg;
 
-assign leds = out;
+assign leds = led_bits;
 
 ALU alu(a,b,op,out,of);
+
+always @(*) begin
+    case(status)
+        2'b00: begin
+            op <= 4'b0000;
+            a <= dip_sw[15:0];
+            led_bits <= 16'h0000;
+        end
+        2'b01: begin
+            b <= dip_sw[15:0];
+            led_bits <= 16'h0000;
+        end
+        2'b10: begin
+            op <= dip_sw[3:0];
+            led_bits <= out;
+            of_reg <= of;
+        end
+        2'b11:
+            led_bits <= 16'h0000 | of_reg;
+    endcase
+end
 
 always @(posedge clock_btn or posedge reset_btn) begin
     if(reset_btn)
         begin
-            status <= 2'b00; out <= 4'h0000; op <= 4'b0000;
+            status <= 2'b00;
         end
     else
         case(status)
-            2'b00: 
-                begin
-                    b <= dip_sw[15:0]; status <= 2'b01;
-                end
-            2'b01:
-                begin
-                    op <= dip_sw[3:0]; status <= 2'b10;
-                end
-            2'b10:
-                begin
-                    out[0] <= of; status <= 2'b11;
-                end
-            2'b11:
-                begin
-                    out <= 4'h0000; op <= 4'b0000; status <= 2'b00;
-                end
+            2'b00: status <= 2'b01;
+            2'b01: status <= 2'b10;
+            2'b10: status <= 2'b11;
+            2'b11: status <= 2'b00;
         endcase
 end
+
+/* end ALU */
 
 endmodule
