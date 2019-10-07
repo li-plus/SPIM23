@@ -109,21 +109,21 @@ ALU alu(a,b,op,out,of);
 always @(*) begin
     case(status)
         2'b00: begin
-            op <= 4'b0000;
-            a <= dip_sw[15:0];
-            led_bits <= 16'h0000;
+            op = 4'b0000;
+            a = dip_sw[15:0];
+            led_bits = 16'h0000;
         end
         2'b01: begin
-            b <= dip_sw[15:0];
-            led_bits <= 16'h0000;
+            b = dip_sw[15:0];
+            led_bits = 16'h0000;
         end
         2'b10: begin
-            op <= dip_sw[3:0];
-            led_bits <= out;
-            of_reg <= of;
+            op = dip_sw[3:0];
+            led_bits = out;
+            of_reg = of;
         end
         2'b11:
-            led_bits <= 16'h0000 | of_reg;
+            led_bits = 16'h0000 | of_reg;
     endcase
 end
 

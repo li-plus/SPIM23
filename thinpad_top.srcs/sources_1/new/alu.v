@@ -14,17 +14,17 @@ wire[16:0] b1 = $signed(b);
 
 always @(*) begin
     case(op)
-        `ALU_ADD: f1 <= a1 + b1;
-        `ALU_SUB: f1 <= a1 - b1;
-        `ALU_AND: f1 <= $signed(a & b);
-        `ALU_OR:  f1 <= $signed(a | b);
-        `ALU_XOR: f1 <= $signed(a ^ b);
-        `ALU_NOT: f1 <= $signed(~a);
-        `ALU_SLL: f1 <= $signed(a << b);
-        `ALU_SRL: f1 <= $signed(a >> b);
-        `ALU_SRA: f1 <= $signed($signed(a) >>> b);
-        `ALU_ROL: f1 <= $signed((a << b) | (a >> (16 - b)));
-        default: f1 <= 0;
+        `ALU_ADD: f1 = a1 + b1;
+        `ALU_SUB: f1 = a1 - b1;
+        `ALU_AND: f1 = $signed(a & b);
+        `ALU_OR:  f1 = $signed(a | b);
+        `ALU_XOR: f1 = $signed(a ^ b);
+        `ALU_NOT: f1 = $signed(~a);
+        `ALU_SLL: f1 = $signed(a << b);
+        `ALU_SRL: f1 = $signed(a >> b);
+        `ALU_SRA: f1 = $signed($signed(a) >>> b);
+        `ALU_ROL: f1 = $signed((a << b) | (a >> (16 - b)));
+        default: f1 = 0;
     endcase
 end
 
