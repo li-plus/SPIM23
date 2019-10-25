@@ -89,58 +89,46 @@ assign ext_ram_ce_n = 1'b1;
 assign ext_ram_oe_n = 1'b1;
 assign ext_ram_we_n = 1'b1;
 
-assign uart_rdn = 1'b1;
-assign uart_wrn = 1'b1;
+//assign uart_rdn = 1'b1;
+//assign uart_wrn = 1'b1;
+//assign leds[13:8] = 6'b0;
+reg reset_uart = 1'b0;
+wire[7:0] read_data;
+wire uart_finish;
+wire write_uart;
+reg state = 1'b0;
+reg[7:0] buffer;
+assign write_uart = state;
 
-/* begin ALU */
-
-reg[1:0] status;
-reg[15:0] a, b;
-reg[3:0] op;
-wire of;
-wire[15:0] out;
-reg[15:0] led_bits;
-reg of_reg;
-
-assign leds = led_bits;
-
-ALU alu(a,b,op,out,of);
-
-always @(*) begin
-    case(status)
-        2'b00: begin
-            op = 4'b0000;
-            a = dip_sw[15:0];
-            led_bits = 16'h0000;
+always @(posedge clk_11M0592, posedge reset_btn) begin
+    if(reset_btn) begin
+        reset_uart <= 1'b1;
+        state <= 1'b0;
+    end else begin
+        reset_uart <= uart_finish;
+        if(uart_finish) begin
+            if(!state)
+                buffer <= read_data;
+            state <= ~state;
         end
-        2'b01: begin
-            b = dip_sw[15:0];
-            led_bits = 16'h0000;
-        end
-        2'b10: begin
-            op = dip_sw[3:0];
-            led_bits = out;
-            of_reg = of;
-        end
-        2'b11:
-            led_bits = 16'h0000 | of_reg;
-    endcase
+    end
 end
 
-always @(posedge clock_btn or posedge reset_btn) begin
-    if(reset_btn)
-        begin
-            status <= 2'b00;
-        end
-    else
-        case(status)
-            2'b00: status <= 2'b01;
-            2'b01: status <= 2'b10;
-            2'b10: status <= 2'b11;
-            2'b11: status <= 2'b00;
-        endcase
-end
-
-/* end ALU */
+uart_controller uart_ctrl(
+      .clk(clk_11M0592),
+      .rst(reset_uart),
+      .ce(1'b1),
+      .we(write_uart),
+      .data_bus_i(base_ram_data[7:0]),
+      .data_bus_o(base_ram_data[7:0]),
+      .tbre_i(uart_tbre),
+      .tsre_i(uart_tsre),
+      .data_ready_i(uart_dataready),
+      .rdn_o(uart_rdn),
+      .wrn_o(uart_wrn),
+      .write_data_i(buffer),
+      .read_data_o(read_data),
+      .uart_finish(uart_finish)
+);
 
 endmodule
