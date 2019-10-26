@@ -89,36 +89,43 @@ assign ext_ram_ce_n = 1'b1;
 assign ext_ram_oe_n = 1'b1;
 assign ext_ram_we_n = 1'b1;
 
-//assign uart_rdn = 1'b1;
-//assign uart_wrn = 1'b1;
-//assign leds[13:8] = 6'b0;
-reg reset_uart = 1'b0;
-wire[7:0] read_data;
-wire uart_finish;
-wire write_uart;
-reg state = 1'b0;
-reg[7:0] buffer;
-assign write_uart = state;
 
-always @(posedge clk_11M0592, posedge reset_btn) begin
-    if(reset_btn) begin
-        reset_uart <= 1'b1;
-        state <= 1'b0;
-    end else begin
-        reset_uart <= uart_finish;
-        if(uart_finish) begin
-            if(!state)
-                buffer <= read_data;
-            state <= ~state;
+reg reset_uart = 1'b0;
+reg[7:0] recv = 8'b0;
+wire uart_finish;
+wire[7:0] uart_in;
+wire[7:0] uart_out;
+reg state = 1'b0;
+reg we = 1'b0;
+assign uart_in = recv;
+
+always @(posedge clk_11M0592) begin
+    case(state)
+        1'b0: begin
+            we <= 1'b0;
+            if(uart_finish == 1'b1) begin
+                recv <= uart_out;
+                reset_uart <= 1'b1;
+                state <= 1'b1;
+            end else
+                reset_uart <= 1'b0;
         end
-    end
+        1'b1: begin
+            we <= 1'b1;
+            if(uart_finish == 1'b1) begin
+                reset_uart <= 1'b1;
+                state <= 1'b0;
+            end else
+                reset_uart <= 1'b0;
+        end
+    endcase
 end
 
 uart_controller uart_ctrl(
       .clk(clk_11M0592),
       .rst(reset_uart),
       .ce(1'b1),
-      .we(write_uart),
+      .we(we),
       .data_bus_i(base_ram_data[7:0]),
       .data_bus_o(base_ram_data[7:0]),
       .tbre_i(uart_tbre),
@@ -126,8 +133,8 @@ uart_controller uart_ctrl(
       .data_ready_i(uart_dataready),
       .rdn_o(uart_rdn),
       .wrn_o(uart_wrn),
-      .write_data_i(buffer),
-      .read_data_o(read_data),
+      .read_data_o(uart_out),
+      .write_data_i(uart_in),
       .uart_finish(uart_finish)
 );
 

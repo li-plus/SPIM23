@@ -25,11 +25,11 @@ reg [7:0] read_data;
 assign rdn_o = rdn;
 assign wrn_o = wrn;
 assign read_data_o = read_data;
-assign uart_finish = state == 3'b111;
+assign uart_finish = state == 3'h7;
 
 always @(posedge clk, posedge rst) begin
     if (rst == 1'b1) begin
-        state <= 3'b000;
+        state <= 3'h0;
         rdn <= 1'b1;
         wrn <= 1'b1;
         read_data <= 8'hzz;
@@ -38,44 +38,42 @@ always @(posedge clk, posedge rst) begin
     else begin
         case (state)
             // initial state
-            3'b000: begin
+            3'h0: begin
                 rdn <= 1'b1;
                 wrn <= 1'b1;
                 read_data <= 8'hzz;
                 data_bus_o <= 8'hzz;
                 if (ce) begin
                     if (we)
-                        state <= 3'b011;
+                        state <= 3'h3;
                     else
-                        state <= 3'b001;
+                        state <= 3'h1;
                 end
             end
             // read states
-            3'b001: begin
-                rdn <= 1'b0;
+            3'h1: begin
                 if (data_ready_i == 1'b1)
-                    state <= 3'b010;
+                    state <= 3'h2;
+                    rdn <= 1'b0;
             end
-            3'b010: begin
+            3'h2: begin
                 read_data <= data_bus_i;
-                state <= 3'b111;
+                rdn <= 1'b1;
+                state <= 3'h7;
             end
             // write states
-            3'b011: begin
+            3'h3: begin
                 data_bus_o <= write_data_i;
                 wrn <= 1'b0;
-                state <= 3'b100;
+                state <= 3'h4;
             end
-            3'b100: begin
+            3'h4: begin
                 wrn <= 1'b1;
-                state <= 3'b101;
-                end
-            3'b101: begin
                 if (tbre_i == 1'b1 && tsre_i == 1'b1)
-                    state <= 3'b111;
+                    state <= 3'h7;
             end
             // final state
-            3'b111: begin
+            3'h7: begin
                 rdn <= 1'b1;
                 wrn <= 1'b1;
             end
