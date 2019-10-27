@@ -81,15 +81,80 @@ module thinpad_top(
 );
 
 // 不使用内存、串口时，禁用其使能信号
-assign base_ram_ce_n = 1'b1;
-assign base_ram_oe_n = 1'b1;
-assign base_ram_we_n = 1'b1;
+
+assign base_ram_be_n = 0;
 
 assign ext_ram_ce_n = 1'b1;
 assign ext_ram_oe_n = 1'b1;
 assign ext_ram_we_n = 1'b1;
 
+assign uart_rdn = 1'b1;
+assign uart_wrn = 1'b1;
 
+reg enable_sram = 0;
+reg[1:0] state = 0;
+reg[3:0] cnt = 0;
+reg is_write = 1;
+
+reg[19:0] addr;
+assign base_ram_addr = addr;
+reg[31:0] data = 0;
+assign base_ram_data = (is_write ? data : 32'hz);
+assign leds = {base_ram_addr[7:0], base_ram_data[7:0]};
+
+SEG7_LUT segL(.oSEG1(dpy0), .iDIG({2'b00, state}));
+
+SramController sram_ctrl(
+        .clk(clk_11M0592),
+        .addr(base_ram_addr),
+        .ce(base_ram_ce_n),
+        .oe(base_ram_oe_n),
+        .we(base_ram_we_n),
+        .is_write(is_write),
+        .enable(enable_sram)
+    );
+
+always @(posedge clock_btn) begin
+    case (state)
+        2'b00: begin
+            addr <= dip_sw[19:0];
+            state <= 2'b01;
+        end
+        2'b01: begin
+            data <= dip_sw;
+            is_write <= 1;
+            enable_sram <= 1;
+            cnt <= 0;
+            state <= 2'b10;
+        end
+        2'b10: begin
+            // write SRAM
+            addr <= addr + 1;
+            data <= data + 1;
+            if (cnt < 9) begin
+                cnt <= cnt + 1;
+            end else begin
+                cnt <= 0;
+                is_write <= 0;
+                addr <= addr - 9;
+                state <= 2'b11;
+            end
+        end
+        2'b11: begin
+            // read SRAM
+            if (cnt < 9) begin
+                addr <= addr + 1;
+                cnt <= cnt + 1;
+            end else begin
+                cnt <= 0;
+                enable_sram <= 0;
+                state <= 2'b00;
+            end
+        end
+    endcase
+end
+
+/*
 reg reset_uart = 1'b0;
 reg[7:0] recv = 8'b0;
 wire uart_finish;
@@ -136,6 +201,6 @@ uart_controller uart_ctrl(
       .read_data_o(uart_out),
       .write_data_i(uart_in),
       .uart_finish(uart_finish)
-);
+);*/
 
 endmodule
