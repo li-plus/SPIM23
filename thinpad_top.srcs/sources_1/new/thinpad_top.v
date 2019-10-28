@@ -89,7 +89,6 @@ assign ext_ram_ce_n = 1'b1;
 assign ext_ram_oe_n = 1'b1;
 assign ext_ram_we_n = 1'b1;
 
-
 reg reset_uart = 1'b0;
 reg[7:0] recv = 8'b0;
 wire uart_finish;
@@ -99,13 +98,14 @@ reg state = 1'b0;
 reg we = 1'b0;
 assign uart_in = recv;
 
-always @(posedge clk_11M0592) begin
+always @(posedge clk_50M) begin
     case(state)
         1'b0: begin
             we <= 1'b0;
             if(uart_finish == 1'b1) begin
                 recv <= uart_out;
                 reset_uart <= 1'b1;
+                we <= 1'b1;
                 state <= 1'b1;
             end else
                 reset_uart <= 1'b0;
@@ -115,6 +115,7 @@ always @(posedge clk_11M0592) begin
             if(uart_finish == 1'b1) begin
                 reset_uart <= 1'b1;
                 state <= 1'b0;
+                we <= 1'b0;
             end else
                 reset_uart <= 1'b0;
         end
@@ -122,7 +123,7 @@ always @(posedge clk_11M0592) begin
 end
 
 uart_controller uart_ctrl(
-      .clk(clk_11M0592),
+      .clk(clk_50M),
       .rst(reset_uart),
       .ce(1'b1),
       .we(we),
@@ -133,9 +134,10 @@ uart_controller uart_ctrl(
       .data_ready_i(uart_dataready),
       .rdn_o(uart_rdn),
       .wrn_o(uart_wrn),
-      .read_data_o(uart_out),
-      .write_data_i(uart_in),
+      .data_o(uart_out),
+      .data_i(uart_in),
       .uart_finish(uart_finish)
 );
+
 
 endmodule

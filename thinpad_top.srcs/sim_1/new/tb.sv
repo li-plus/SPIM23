@@ -84,6 +84,7 @@ always @(posedge clk_50M) begin
             if(uart_finish == 1'b1) begin
                 recv <= uart_out;
                 reset_uart <= 1'b1;
+                we <= 1'b1;
                 state <= 1'b1;
             end else
                 reset_uart <= 1'b0;
@@ -93,6 +94,7 @@ always @(posedge clk_50M) begin
             if(uart_finish == 1'b1) begin
                 reset_uart <= 1'b1;
                 state <= 1'b0;
+                we <= 1'b0;
             end else
                 reset_uart <= 1'b0;
         end
@@ -111,8 +113,8 @@ uart_controller uart_ctrl(
       .data_ready_i(uart_dataready),
       .rdn_o(uart_rdn),
       .wrn_o(uart_wrn),
-      .read_data_o(uart_out),
-      .write_data_i(uart_in),
+      .data_o(uart_out),
+      .data_i(uart_in),
       .uart_finish(uart_finish)
 );
 
