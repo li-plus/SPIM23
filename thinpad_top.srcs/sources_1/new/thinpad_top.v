@@ -91,66 +91,79 @@ assign ext_ram_we_n = 1'b1;
 assign uart_rdn = 1'b1;
 assign uart_wrn = 1'b1;
 
-reg enable_sram = 0;
+reg reset_sram = 1;
 reg[1:0] state = 0;
-reg[3:0] cnt = 0;
+reg[3:0] cnt_write = 4'ha;
+reg[3:0] cnt_read = 4'ha;
 reg is_write = 1;
+wire is_finish;
 
 reg[19:0] addr;
 assign base_ram_addr = addr;
 reg[31:0] data = 0;
-assign base_ram_data = (is_write ? data : 32'hz);
+assign base_ram_data = (is_write ? data : 32'hzzzzzzzz);
 assign leds = {base_ram_addr[7:0], base_ram_data[7:0]};
 
 SEG7_LUT segL(.oSEG1(dpy0), .iDIG({2'b00, state}));
 
 SramController sram_ctrl(
         .clk(clk_11M0592),
+        .rst(reset_sram),
         .addr(base_ram_addr),
         .ce(base_ram_ce_n),
         .oe(base_ram_oe_n),
         .we(base_ram_we_n),
         .is_write(is_write),
-        .enable(enable_sram)
+        .is_finish(is_finish)
     );
 
-always @(posedge clock_btn) begin
+always @(posedge clk_11M0592) begin
     case (state)
         2'b00: begin
             addr <= dip_sw[19:0];
-            state <= 2'b01;
+            is_write <= 1;
+            reset_sram <= 1;
         end
         2'b01: begin
             data <= dip_sw;
-            is_write <= 1;
-            enable_sram <= 1;
-            cnt <= 0;
-            state <= 2'b10;
+            cnt_write <= 0;
         end
         2'b10: begin
             // write SRAM
-            addr <= addr + 1;
-            data <= data + 1;
-            if (cnt < 9) begin
-                cnt <= cnt + 1;
-            end else begin
-                cnt <= 0;
-                is_write <= 0;
-                addr <= addr - 9;
-                state <= 2'b11;
+            cnt_read <= 0;
+            if(cnt_write < 10) begin
+                if(is_finish) begin
+                    data <= data + 1;
+                    addr <= addr + 1;
+                    cnt_write <= cnt_write + 1;
+                    reset_sram <= 1;
+                end else begin
+                    reset_sram <= 0;
+                end
             end
         end
         2'b11: begin
             // read SRAM
-            if (cnt < 9) begin
-                addr <= addr + 1;
-                cnt <= cnt + 1;
-            end else begin
-                cnt <= 0;
-                enable_sram <= 0;
-                state <= 2'b00;
+            is_write <= 0;
+            if (cnt_read < 10) begin
+                if(is_finish) begin
+                    addr <= addr - 1;
+                    cnt_read <= cnt_read + 1;
+                    reset_sram <= 1;
+                end else begin
+                    reset_sram <= 0;
+                end
             end
         end
+    endcase
+end
+
+always @(posedge clock_btn) begin
+    case (state)
+        2'b00: state <= 2'b01;
+        2'b01: state <= 2'b10;
+        2'b10: state <= 2'b11;
+        2'b11: state <= 2'b00;
     endcase
 end
 
