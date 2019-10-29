@@ -214,7 +214,6 @@ uart_controller uart_ctrl(
       .data_i(uart_in),
       .uart_finish(uart_finish)
 );
-*/
 
 
 endmodule
