@@ -52,9 +52,10 @@ always @(posedge clk, posedge rst) begin
             end
             // read states
             3'h1: begin
-                if (data_ready_i == 1'b1)
+                if (data_ready_i == 1'b1) begin
                     state <= 3'h2;
                     rdn <= 1'b0;
+                end
             end
             3'h2: begin
                 read_buffer <= data_bus_i;
