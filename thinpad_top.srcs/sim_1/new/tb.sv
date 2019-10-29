@@ -61,7 +61,7 @@ initial begin
     dip_sw = 32'h2;
     touch_btn = 0;
     for (integer i = 0; i < 50; i = i+1) begin
-        #10000;
+        #50000;
         cpld.pc_send_byte(counter);
         $display("try send: 0x%d 0x%02x", counter, counter);
         counter = counter + 1'b1;

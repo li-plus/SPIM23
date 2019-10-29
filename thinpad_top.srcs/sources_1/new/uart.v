@@ -20,7 +20,7 @@ module uart_controller(
     );
     
 reg[2:0] state;
-reg rdn, wrn;
+reg rdn = 1'b1, wrn = 1'b1;
 reg [7:0] read_buffer;
 reg [7:0] write_buffer;
 assign rdn_o = rdn;
@@ -64,6 +64,7 @@ always @(posedge clk, posedge rst) begin
             // write states
             3'h3: begin
                 write_buffer <= data_i;
+                wrn <= 1'b1;
                 state <= 3'h4;
             end
             3'h4: begin
@@ -72,7 +73,11 @@ always @(posedge clk, posedge rst) begin
             end
             3'h5: begin
                 wrn <= 1'b1;
-                if (tbre_i == 1'b1 && tsre_i == 1'b1)
+                if (tbre_i == 1'b1)
+                    state <= 3'h6;
+            end
+            3'h6: begin
+                if (tsre_i == 1'b1)
                     state <= 3'h7;
             end
             3'h7: begin
