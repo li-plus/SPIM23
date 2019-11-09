@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+`include "defines.vh"
 module tb;
 
 wire clk_50M, clk_11M0592;
@@ -54,69 +55,18 @@ assign rxd = 1'b1; //idle state
 assign base_ram_ce_n = 1'b1;
 assign base_ram_oe_n = 1'b1;
 assign base_ram_we_n = 1'b1;
-reg[7:0] counter = 8'b0;
+
+
+reg cpu_rst;
 
 initial begin 
     //在这里可以自定义测试输入序列，例如：
-    dip_sw = 32'h2;
-    touch_btn = 0;
-    for (integer i = 0; i < 50; i = i+1) begin
-        #50000;
-        cpld.pc_send_byte(counter);
-        $display("try send: 0x%d 0x%02x", counter, counter);
-        counter = counter + 1'b1;
-    end
+    cpu_rst = `RstEnable;
+    #195 cpu_rst = `RstDisable;
+    #1000 $stop; 
 end
 
-reg reset_uart = 1'b0;
-reg[7:0] recv = 8'b0;
-wire uart_finish;
-wire[7:0] uart_in;
-wire[7:0] uart_out;
-reg state = 1'b0;
-reg we = 1'b0;
-assign uart_in = recv;
-
-always @(posedge clk_50M) begin
-    case(state)
-        1'b0: begin
-            we <= 1'b0;
-            if(uart_finish == 1'b1) begin
-                recv <= uart_out;
-                reset_uart <= 1'b1;
-                we <= 1'b1;
-                state <= 1'b1;
-            end else
-                reset_uart <= 1'b0;
-        end
-        1'b1: begin
-            we <= 1'b1;
-            if(uart_finish == 1'b1) begin
-                reset_uart <= 1'b1;
-                state <= 1'b0;
-                we <= 1'b0;
-            end else
-                reset_uart <= 1'b0;
-        end
-    endcase
-end
-
-uart_controller uart_ctrl(
-      .clk(clk_50M),
-      .rst(reset_uart),
-      .ce(1'b1),
-      .we(we),
-      .data_bus_i(base_ram_data[7:0]),
-      .data_bus_o(base_ram_data[7:0]),
-      .tbre_i(uart_tbre),
-      .tsre_i(uart_tsre),
-      .data_ready_i(uart_dataready),
-      .rdn_o(uart_rdn),
-      .wrn_o(uart_wrn),
-      .data_o(uart_out),
-      .data_i(uart_in),
-      .uart_finish(uart_finish)
-);
+min_sopc my_pc(.clk(clk_50M), .rst(cpu_rst));
 
 //// 待测试用户设计
 //thinpad_top dut(
