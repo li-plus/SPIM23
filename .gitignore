@@ -6,6 +6,11 @@
 #Exclude all
 #########
 *
+!*/
+thinpad_top.cache/
+thinpad_top.ip_user_files/
+thinpad_top.runs/
+thinpad_top.sim/
 !.gitignore
 ###########################################################################
 ##	VIVADO
@@ -16,6 +21,7 @@
 #Do NOT ignore VHDL, Verilog, block diagrams or EDIF files.
 !*.vhd
 !*.v
+!*.vh
 !*.bd
 !*.edif
 #########
@@ -66,6 +72,9 @@
 #########
 !*.tcl
 #########
+#Journal - files
+#########
+!*.jou
 #########
 #Reports
 #########
