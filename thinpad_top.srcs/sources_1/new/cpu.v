@@ -92,7 +92,11 @@ inst_decoder decode(.rst(rst), .pc_i(id_pc_i), .inst_i(id_inst_i),
                     .reg1_addr_o(reg1_addr), .reg2_addr_o(reg2_addr),
                     .reg_we_o(id_reg_we_o), .reg_waddr_o(id_reg_waddr_o),
                     .alu_op_o(id_alu_op_o), .alu_sel_o(id_alu_sel_o),
-                    .reg1_o(id_reg1_o), .reg2_o(id_reg2_o)
+                    .reg1_o(id_reg1_o), .reg2_o(id_reg2_o),
+                    .exec_reg_we_i(ex_reg_we_o), .exec_reg_waddr_i(ex_reg_waddr_o),
+                    .exec_reg_wdata_i(ex_reg_wdata_o),
+                    .mem_reg_we_i(mem_reg_we_o), .mem_reg_waddr_i(mem_reg_waddr_o),
+                    .mem_reg_wdata_i(mem_reg_wdata_i)
 );
 
 id_ex id_ex_conn(.clk(clk), .rst(rst),

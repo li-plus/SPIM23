@@ -39,7 +39,7 @@ module register(
     
 reg[`RegBus] regs[0:31];
 
-// write register
+// write register when rising edge
 always @(posedge clk) begin
     if(rst == `RstDisable) begin
         if(we == `WriteEnable && waddr != 5'h0) begin  // ignore write to $0
@@ -48,8 +48,10 @@ always @(posedge clk) begin
     end
 end
 
+
+// MUST be combinatorial
 // read register
-always @(posedge clk) begin
+always @(*) begin
     if(rst == `RstEnable || raddr1 == 5'h0 || re1 == `ReadDisable) begin
         rdata1 <= `ZeroWord;
     end else if(raddr1 == waddr && we == `WriteEnable) begin
@@ -60,7 +62,7 @@ always @(posedge clk) begin
 end
 
 // read register 2
-always @(posedge clk) begin
+always @(*) begin
     if(rst == `RstEnable || raddr2 == 5'h0 || re2 == `ReadDisable) begin
         rdata2 <= `ZeroWord;
     end else if(raddr2 == waddr && we == `WriteEnable) begin

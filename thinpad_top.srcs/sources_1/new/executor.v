@@ -31,20 +31,55 @@ module executor(
     // execution results
     output reg[`RegAddrBus] reg_waddr_o,
     output reg              reg_we_o,
-    output reg[`RegBus]     reg_wdata_o,
-    output reg[`RegBus]     logic_out
+    output reg[`RegBus]     reg_wdata_o
     );
+
+reg[`RegBus] logic_out;
+reg[`RegBus] shift_out;
     
+// logic combinatorial
 always @(*) begin
     if(rst == `RstEnable) begin
         logic_out <= `ZeroWord;
     end else begin
         case(alu_op_i)
             `ALU_OR: begin
-                logic_out <= (reg1_i | reg2_i);
+                logic_out <= reg1_i | reg2_i;
+            end
+            `ALU_AND: begin
+                logic_out <= reg1_i & reg2_i;
+            end
+            `ALU_NOR: begin
+                logic_out <= ~(reg1_i | reg2_i);
+            end
+            `ALU_XOR: begin
+                logic_out <= reg1_i ^ reg2_i;
             end
             default: begin
                 logic_out <= `ZeroWord;
+            end
+        endcase
+    end
+end
+
+
+// shift combinatorial
+always @(*) begin
+    if(rst == `RstEnable) begin
+        shift_out <= `ZeroWord;
+    end else begin
+        case(alu_op_i)
+            `ALU_SLL: begin
+                shift_out <= reg2_i << reg1_i[4:0];
+            end
+            `ALU_SRL: begin
+                shift_out <= reg2_i >> reg1_i[4:0];
+            end
+            `ALU_SRA: begin
+                shift_out <= $signed(reg2_i) >>> reg1_i[4:0];
+            end
+            default: begin
+                shift_out <= `ZeroWord;
             end
         endcase
     end
@@ -56,6 +91,9 @@ always @(*) begin
     case(alu_sel_i)
         `ALU_SEL_LOGIC: begin
             reg_wdata_o <= logic_out;
+        end
+        `ALU_SEL_SHIFT: begin
+            reg_wdata_o <= shift_out;
         end
         default: begin
             reg_wdata_o <= `ZeroWord;
