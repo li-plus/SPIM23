@@ -37,7 +37,11 @@ module id(input wire rst,
           output reg[`RegBus] link_addr_o,
           output reg is_in_delayslot_o,
           
-          output wire stallreq);
+          output wire[31:0] excepttype_o,
+          output wire[`RegBus] current_inst_address_o,
+	  
+	  output wire stallreq
+);
     
     /**
      Reference:
@@ -66,6 +70,8 @@ module id(input wire rst,
     reg stallreq_for_reg1_loadrelate;
     reg stallreq_for_reg2_loadrelate;
     wire pre_inst_is_load;
+    reg excepttype_is_syscall;
+    reg excepttype_is_eret;
     
     assign pc_plus_8          = pc_i + 8;
     assign pc_plus_4          = pc_i + 4;
@@ -82,6 +88,8 @@ module id(input wire rst,
     (ex_aluop_i == `ALU_SC_OP)) ? `True : `False;
     
     assign inst_o = inst_i;
+    assign excepttype_o = {19'b0, excepttype_is_eret, 2'b0, instvalid, excepttype_is_syscall, 8'b0};
+    assign current_inst_address_o = pc_i;
     
     always @ (*) begin
         if (rst == `RstEnable) begin
@@ -99,6 +107,8 @@ module id(input wire rst,
             branch_target_address_o  <= `ZeroWord;
             branch_flag_o            <= `NotBranch;
             next_inst_in_delayslot_o <= `NotInDelaySlot;
+	    excepttype_is_syscall    <= `False;
+	    excepttype_is_eret       <= `False;	
         end
         else begin
             aluop_o                  <= `ALU_NOP_OP;
@@ -115,6 +125,8 @@ module id(input wire rst,
             branch_target_address_o  <= `ZeroWord;
             branch_flag_o            <= `NotBranch;
             next_inst_in_delayslot_o <= `NotInDelaySlot;
+            excepttype_is_syscall    <= `False;
+            excepttype_is_eret       <= `False;
             case (op_code)
                 `EXE_SPECIAL_INST: begin
                     case (shamt)
@@ -281,6 +293,43 @@ module id(input wire rst,
                             endcase
                         end
                         default: ;
+                    endcase
+                    case (funct)
+                        `EXE_TEQ: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TEQ_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadEnable;  // TODO
+                            instvalid <= `InstValid;
+                        end
+                        `EXE_TGE: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TGE_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadEnable;
+                            instvalid <= `InstValid;
+                        end
+                        `EXE_TGEU: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TGEU_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadEnable;
+                            instvalid <= `InstValid;
+                        end
+                        `EXE_TLT: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TLT_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadEnable;
+                            instvalid <= `InstValid;
+                        end
+                        `EXE_TLTU: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TLTU_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadEnable;
+                            instvalid <= `InstValid;
+                        end
+                        `EXE_TNE: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TNE_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadEnable;
+                            instvalid <= `InstValid;
+                        end
+                        `EXE_SYSCALL: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_SYSCALL_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadDisable; reg2_read_o <= `ReadDisable;
+                            instvalid <= `InstValid; excepttype_is_syscall<= `True;
+                        end
                     endcase
                 end
                 `EXE_ORI: begin
@@ -512,8 +561,37 @@ module id(input wire rst,
                                 next_inst_in_delayslot_o <= `InDelaySlot;
                             end
                         end
-                        default:	begin
+                        `EXE_TEQI: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TEQI_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadDisable;
+                            instvalid <= `InstValid; imm <= {{16{inst_i[15]}}, inst_i[15:0]};
                         end
+                        `EXE_TGEI: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TGEI_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadDisable;
+                            instvalid <= `InstValid; imm <= {{16{inst_i[15]}}, inst_i[15:0]};
+                        end
+                        `EXE_TGEIU: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TGEIU_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadDisable;
+                            instvalid <= `InstValid; imm <= {{16{inst_i[15]}}, inst_i[15:0]};
+                        end
+                        `EXE_TLTI: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TLTI_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadDisable;
+                            instvalid <= `InstValid; imm <= {{16{inst_i[15]}}, inst_i[15:0]};
+                        end
+                        `EXE_TLTIU: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TLTIU_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadDisable;
+                            instvalid <= `InstValid; imm <= {{16{inst_i[15]}}, inst_i[15:0]};
+                        end
+                        `EXE_TNEI: begin
+                            wreg_o <= `WriteDisable; aluop_o <= `ALU_TNEI_OP;
+                            alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadEnable; reg2_read_o <= `ReadDisable;
+                            instvalid <= `InstValid; imm <= {{16{inst_i[15]}}, inst_i[15:0]};
+                        end
+                        default: ;
                     endcase
                 end
                 `EXE_SPECIAL2_INST: begin
@@ -565,7 +643,7 @@ module id(input wire rst,
                 `EXE_COP0_INST: begin
                     case(rs)
                         `EXE_CP0_MF: begin
-                            if(inst_i[10:0] == 11'b00000000000) begin
+                            if(inst_i[10:3] == 8'b00000000) begin
                                 aluop_o <= `ALU_MFC0_OP;
                                 alusel_o <= `ALU_SEL_MOVE;
                                 wd_o <= rt;
@@ -576,7 +654,7 @@ module id(input wire rst,
                             end
                         end
                         `EXE_CP0_MT: begin
-                            if(inst_i[10:0] == 11'b00000000000) begin
+                            if(inst_i[10:3] == 8'b00000000) begin
                                 aluop_o <= `ALU_MTC0_OP;
                                 alusel_o <= `ALU_SEL_NOP;
                                 wreg_o <= `WriteDisable;
@@ -611,7 +689,12 @@ module id(input wire rst,
                     instvalid <= `InstValid;
                 end
             end
-                    
+            
+            if(inst_i == `EXE_ERET) begin
+                wreg_o <= `WriteDisable; aluop_o <= `ALU_ERET_OP; alusel_o <= `ALU_SEL_NOP;
+                reg1_read_o <= `ReadDisable; reg2_read_o <= `ReadDisable; instvalid <= `InstValid;
+                excepttype_is_eret <= `True;
+            end       
 	end //if
 end //always
                     

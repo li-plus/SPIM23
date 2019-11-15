@@ -3,16 +3,17 @@
 module if_id(input wire clk,
              input wire rst,
              input wire[5:0] stall,
+             input wire flush,
              input wire[`InstAddrBus] if_pc,
              input wire[`InstBus] if_inst,
              output reg[`InstAddrBus] id_pc,
              output reg[`InstBus] id_inst);
     
     always @ (posedge clk) begin
-        if (rst == `RstEnable) begin
+        if (rst == `RstEnable || flush == `True) begin
             id_pc   <= `ZeroWord;
             id_inst <= `ZeroWord;
-            end 
+            end
 		else if (stall[1] == `Stop && stall[2] == `NoStop) begin
             id_pc   <= `ZeroWord;
             id_inst <= `ZeroWord;

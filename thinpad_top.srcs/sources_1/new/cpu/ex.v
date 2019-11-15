@@ -9,6 +9,8 @@ module ex(input wire rst,
           input wire[`RegAddrBus] wd_i,
           input wire wreg_i,
           input wire[`RegBus] inst_i,
+          input wire[31:0] excepttype_i,
+          input wire[`RegBus] current_inst_address_i,
           
           input wire[`RegBus] hi_i,
           input wire[`RegBus] lo_i,
@@ -49,7 +51,11 @@ module ex(input wire rst,
           output wire[`AluOpBus] aluop_o,
           output wire[`RegBus] mem_addr_o,
           output wire[`RegBus] reg2_o,
-          
+	  
+	  output wire[31:0] excepttype_o,
+          output wire is_in_delayslot_o,
+          output wire[`RegBus] current_inst_address_o,
+
           output reg stallreq,
           
           // cp0 utils
@@ -87,12 +93,19 @@ module ex(input wire rst,
     reg[`DoubleRegBus] hilo_temp1;
     reg stallreq_for_madd_msub;
     reg stallreq_for_div;
+    reg trap_assert;
+    reg ov_assert;
     
     assign aluop_o = aluop_i;
     
     assign mem_addr_o = reg1_i + {{16{inst_i[15]}},inst_i[15:0]};
     
     assign reg2_o = reg2_i;
+
+    assign excepttype_o = {excepttype_i[31:12], ov_assert, trap_assert, excepttype_i[9:8], 8'h0};
+
+    assign is_in_delayslot_o = is_in_delayslot_i;
+    assign current_inst_address_o = current_inst_address_i;
     
     always @ (*) begin
         if (rst == `RstEnable) begin
@@ -124,15 +137,17 @@ module ex(input wire rst,
         end
     end
     
-    assign reg2_i_mux = ((aluop_i == `ALU_SUB_OP) || (aluop_i == `ALU_SUBU_OP) ||
-    (aluop_i == `ALU_SLT_OP)) ? (~reg2_i)+1 : reg2_i;
+    assign reg2_i_mux = (aluop_i == `ALU_SUB_OP || aluop_i == `ALU_SUBU_OP ||
+                         aluop_i == `ALU_SLT_OP || aluop_i == `ALU_TLT_OP || aluop_i == `ALU_TLTI_OP || 
+                         aluop_i == `ALU_TGE_OP || aluop_i == `ALU_TGEI_OP) ? (~reg2_i) + 1 : reg2_i;
     
     assign result_sum = reg1_i + reg2_i_mux;
     
     assign ov_sum = ((!reg1_i[31] && !reg2_i_mux[31]) && result_sum[31]) ||
     ((reg1_i[31] && reg2_i_mux[31]) && (!result_sum[31]));
     
-    assign reg1_lt_reg2 = ((aluop_i == `ALU_SLT_OP)) ?
+    assign reg1_lt_reg2 = (aluop_i == `ALU_SLT_OP || aluop_i == `ALU_TLT_OP || aluop_i == `ALU_TLTI_OP || 
+                           aluop_i == `ALU_TGE_OP || aluop_i == `ALU_TGEI_OP) ?
     ((reg1_i[31] && !reg2_i[31]) ||
     (!reg1_i[31] && !reg2_i[31] && result_sum[31])||
     (reg1_i[31] && reg2_i[31] && result_sum[31]))
@@ -174,6 +189,22 @@ module ex(input wire rst,
                 reg1_i_not[4] ? 27 : reg1_i_not[3] ? 28 : reg1_i_not[2] ? 29 :
                 reg1_i_not[1] ? 30 : reg1_i_not[0] ? 31 : 32) ;
                 default: arithmeticres <= `ZeroWord;
+            endcase
+        end
+    end
+
+    always @(*) begin
+        if(rst == `RstEnable) begin
+            trap_assert <= `TrapNotAssert;
+        end
+        else begin
+            trap_assert <= `TrapNotAssert;
+            case(aluop_i)
+            `ALU_TEQ_OP, `ALU_TEQI_OP: if(reg1_i == reg2_i) trap_assert <= `TrapAssert;
+            `ALU_TGE_OP, `ALU_TGEI_OP, `ALU_TGEIU_OP, `ALU_TGEU_OP: if(~reg1_lt_reg2) trap_assert <= `TrapAssert;
+            `ALU_TLT_OP, `ALU_TLTI_OP, `ALU_TLTIU_OP, `ALU_TLTU_OP: if(reg1_lt_reg2) trap_assert <= `TrapAssert;
+            `ALU_TNE_OP, `ALU_TNEI_OP: if(reg1_i != reg2_i) trap_assert <= `TrapAssert;
+            default: ;
             endcase
         end
     end
@@ -359,10 +390,14 @@ module ex(input wire rst,
         wd_o <= wd_i;
         
         if (((aluop_i == `ALU_ADD_OP) || (aluop_i == `ALU_ADDI_OP) ||
-            (aluop_i == `ALU_SUB_OP)) && (ov_sum == 1'b1))
+            (aluop_i == `ALU_SUB_OP)) && (ov_sum == 1'b1)) begin
             wreg_o <= `WriteDisable;
-        else
+            ov_assert <= `True;   // overflow occurred
+        end
+        else begin
             wreg_o <= wreg_i;
+            ov_assert <= `False;
+        end
         
         case (alusel_i)
             `ALU_SEL_LOGIC: wdata_o       <= logicres;
