@@ -3,20 +3,26 @@
 module id(input wire rst,
           input wire[`InstAddrBus] pc_i,
           input wire[`InstBus] inst_i,
+          
           input wire[`AluOpBus] ex_aluop_i,
           input wire ex_wreg_i,
           input wire[`RegBus] ex_wdata_i,
           input wire[`RegAddrBus] ex_wd_i,
+          
           input wire mem_wreg_i,
           input wire[`RegBus] mem_wdata_i,
           input wire[`RegAddrBus] mem_wd_i,
+          
           input wire[`RegBus] reg1_data_i,
           input wire[`RegBus] reg2_data_i,
+          
           input wire is_in_delayslot_i,
+          
           output reg reg1_read_o,
           output reg reg2_read_o,
           output reg[`RegAddrBus] reg1_addr_o,
           output reg[`RegAddrBus] reg2_addr_o,
+          
           output reg[`AluOpBus] aluop_o,
           output reg[`AluSelBus] alusel_o,
           output reg[`RegBus] reg1_o,
@@ -24,11 +30,13 @@ module id(input wire rst,
           output reg[`RegAddrBus] wd_o,
           output reg wreg_o,
           output wire[`RegBus] inst_o,
+          
           output reg next_inst_in_delayslot_o,
           output reg branch_flag_o,
           output reg[`RegBus] branch_target_address_o,
           output reg[`RegBus] link_addr_o,
           output reg is_in_delayslot_o,
+          
           output wire stallreq);
     
     /**
@@ -554,8 +562,33 @@ module id(input wire rst,
                         end
                     endcase //EXE_SPECIAL_INST2 case
                 end
-                default: begin
+                `EXE_COP0_INST: begin
+                    case(rs)
+                        `EXE_CP0_MF: begin
+                            if(inst_i[10:0] == 11'b00000000000) begin
+                                aluop_o <= `ALU_MFC0_OP;
+                                alusel_o <= `ALU_SEL_MOVE;
+                                wd_o <= rt;
+                                wreg_o <= `WriteEnable;
+                                instvalid <= `InstValid;
+                                reg1_read_o <= `ReadDisable;
+                                reg2_read_o <= `ReadDisable;
+                            end
+                        end
+                        `EXE_CP0_MT: begin
+                            if(inst_i[10:0] == 11'b00000000000) begin
+                                aluop_o <= `ALU_MTC0_OP;
+                                alusel_o <= `ALU_SEL_NOP;
+                                wreg_o <= `WriteDisable;
+                                instvalid <= `InstValid;
+                                reg1_read_o <= `ReadEnable;
+                                reg1_addr_o <= rt;
+                                reg2_read_o <= `ReadDisable;
+                            end
+                        end
+                    endcase
                 end
+                default: ;
             endcase //case op_code
             
             if (inst_i[31:21] == 11'b00000000000) begin

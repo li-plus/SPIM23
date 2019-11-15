@@ -25,6 +25,11 @@ module div(input wire clk,
             state    <= `DivFree;
             ready_o  <= `DivResultNotReady;
             result_o <= {`ZeroWord,`ZeroWord};
+            cnt <= 6'b000000;
+            dividend <= 65'h0;
+            divisor <= `ZeroWord;
+            temp_op1 <= `ZeroWord;
+            temp_op2 <= `ZeroWord;
         end
         else begin
             case (state)

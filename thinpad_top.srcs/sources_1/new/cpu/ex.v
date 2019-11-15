@@ -1,6 +1,7 @@
 `include "defines.vh"
 
 module ex(input wire rst,
+
           input wire[`AluOpBus] aluop_i,
           input wire[`AluSelBus] alusel_i,
           input wire[`RegBus] reg1_i,
@@ -8,36 +9,64 @@ module ex(input wire rst,
           input wire[`RegAddrBus] wd_i,
           input wire wreg_i,
           input wire[`RegBus] inst_i,
+          
           input wire[`RegBus] hi_i,
           input wire[`RegBus] lo_i,
+          
           input wire[`RegBus] wb_hi_i,
           input wire[`RegBus] wb_lo_i,
           input wire wb_whilo_i,
+          
           input wire[`RegBus] mem_hi_i,
           input wire[`RegBus] mem_lo_i,
           input wire mem_whilo_i,
+          
           input wire[`DoubleRegBus] hilo_temp_i,
           input wire[1:0] cnt_i,
+          
           input wire[`DoubleRegBus] div_result_i,
           input wire div_ready_i,
+          
           input wire[`RegBus] link_address_i,
           input wire is_in_delayslot_i,
+          
           output reg[`RegAddrBus] wd_o,
           output reg wreg_o,
           output reg[`RegBus] wdata_o,
+          
           output reg[`RegBus] hi_o,
           output reg[`RegBus] lo_o,
           output reg whilo_o,
+          
           output reg[`DoubleRegBus] hilo_temp_o,
           output reg[1:0] cnt_o,
+          
           output reg[`RegBus] div_opdata1_o,
           output reg[`RegBus] div_opdata2_o,
           output reg div_start_o,
           output reg signed_div_o,
+          
           output wire[`AluOpBus] aluop_o,
           output wire[`RegBus] mem_addr_o,
           output wire[`RegBus] reg2_o,
-          output reg stallreq);
+          
+          output reg stallreq,
+          
+          // cp0 utils
+          input wire mem_cp0_reg_we,
+          input wire[4:0] mem_cp0_reg_waddr,
+          input wire[`RegBus] mem_cp0_reg_data,
+          
+          input wire wb_cp0_reg_we,
+          input wire[4:0] wb_cp0_reg_waddr,
+          input wire[`RegBus] wb_cp0_reg_data,
+          
+          input wire[`RegBus] cp0_reg_data_i,
+          output reg[4:0] cp0_reg_raddr_o,
+          output reg cp0_reg_we_o,
+          output reg[4:0] cp0_reg_waddr_o,
+          output reg[`RegBus] cp0_reg_data_o
+);
     
     reg[`RegBus] logicres;
     reg[`RegBus] shiftres;
@@ -312,6 +341,15 @@ module ex(input wire rst,
                 `ALU_MFLO_OP: moveres <= LO;
                 `ALU_MOVZ_OP: moveres <= reg1_i;
                 `ALU_MOVN_OP: moveres <= reg1_i;
+                `ALU_MFC0_OP: begin
+                    cp0_reg_raddr_o <= inst_i[15:11];
+                    moveres <= cp0_reg_data_i;
+                    // RAW data conflict
+                    if(mem_cp0_reg_we == `WriteEnable && mem_cp0_reg_waddr == inst_i[15:11])
+                        moveres <= mem_cp0_reg_data;
+                    else if (wb_cp0_reg_we == `WriteEnable && wb_cp0_reg_waddr == inst_i[15:11])
+                        moveres <= wb_cp0_reg_data;
+                end
                 default: ;
             endcase
         end
@@ -370,6 +408,22 @@ module ex(input wire rst,
             whilo_o      <= `WriteDisable;
             {hi_o, lo_o} <= {`ZeroWord, `ZeroWord};
         end
+    end
+    
+    always @ (*) begin
+        if(rst == `RstEnable) begin
+            cp0_reg_waddr_o <= 5'b00000;
+            cp0_reg_we_o <= `WriteDisable;
+            cp0_reg_data_o <= `ZeroWord;
+        end else if(aluop_i == `ALU_MTC0_OP) begin
+            cp0_reg_waddr_o <= inst_i[15:11];
+            cp0_reg_we_o <= `WriteEnable;
+            cp0_reg_data_o <= reg1_i;
+      end else begin
+            cp0_reg_waddr_o <= 5'b00000;
+            cp0_reg_we_o <= `WriteDisable;
+            cp0_reg_data_o <= `ZeroWord;
+        end                
     end
     
 endmodule

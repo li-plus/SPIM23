@@ -111,6 +111,11 @@
 `define EXE_SPECIAL_INST 6'b000000
 `define EXE_REGIMM_INST 6'b000001
 `define EXE_SPECIAL2_INST 6'b011100
+`define EXE_COP0_INST 6'b010000
+
+// cp0 ops
+`define EXE_CP0_MT 5'b00100
+`define EXE_CP0_MF 5'b00000
 
 
 `define ALU_AND_OP   8'b00100100
@@ -190,6 +195,9 @@
 `define ALU_SWR_OP  8'b11101110
 `define ALU_SYNC_OP  8'b00001111
 
+`define ALU_MFC0_OP 8'b01011101
+`define ALU_MTC0_OP 8'b01100000
+
 `define ALU_NOP_OP    8'b00000000
 
 //AluSel
@@ -214,6 +222,7 @@
 `define DataBus 31:0
 //`define DataMemNum 131071
 //`define DataMemNumLog2 17
+// for simulation ONLY
 `define DataMemNum 128
 `define DataMemNumLog2 7
 `define ByteWidth 7:0
@@ -236,3 +245,21 @@
 `define DivResultNotReady 1'b0
 `define DivStart 1'b1
 `define DivStop 1'b0
+
+// CoProcessor 0 entries
+`define CP0_REG_INDEX 5'b00000
+`define CP0_REG_RANDOM 5'b00001
+`define CP0_REG_ENTRYLO0 5'b00010
+`define CP0_REG_ENTRYLO1 5'b00011
+`define CP0_REG_CONTEXT 5'b00100
+`define CP0_REG_PAGEMASK 5'b00101
+`define CP0_REG_WIRED 5'b00110
+`define CP0_REG_BADVADDR 5'b01000
+`define CP0_REG_COUNT    5'b01001
+`define CP0_REG_ENTRYHI  5'b01010
+`define CP0_REG_COMPARE    5'b01011
+`define CP0_REG_STATUS    5'b01100
+`define CP0_REG_CAUSE    5'b01101
+`define CP0_REG_EPC    5'b01110
+`define CP0_REG_EBASE    5'b01111  // when TLB enables, PrId becomes EBase
+`define CP0_REG_CONFIG    5'b10000

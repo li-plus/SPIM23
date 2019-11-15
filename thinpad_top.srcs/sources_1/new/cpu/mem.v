@@ -1,27 +1,42 @@
 `include "defines.vh"
 
 module mem(input wire rst,
+
            input wire[`RegAddrBus] wd_i,
            input wire wreg_i,
            input wire[`RegBus] wdata_i,
            input wire[`RegBus] hi_i,
            input wire[`RegBus] lo_i,
            input wire whilo_i,
+           
            input wire[`AluOpBus] aluop_i,
            input wire[`RegBus] mem_addr_i,
            input wire[`RegBus] reg2_i,
+           
            input wire[`RegBus] mem_data_i,
+           
            input wire LLbit_i,
            input wire wb_LLbit_we_i,
            input wire wb_LLbit_value_i,
+           
+           input wire cp0_reg_we_i,
+           input wire[4:0] cp0_reg_waddr_i,
+           input wire[`RegBus] cp0_reg_data_i,
+           
            output reg[`RegAddrBus] wd_o,
            output reg wreg_o,
            output reg[`RegBus] wdata_o,
            output reg[`RegBus] hi_o,
            output reg[`RegBus] lo_o,
            output reg whilo_o,
+           
            output reg LLbit_we_o,
            output reg LLbit_value_o,
+           
+           output reg cp0_reg_we_o,
+           output reg[4:0] cp0_reg_waddr_o,
+           output reg[`RegBus] cp0_reg_data_o,
+           
            output reg[`RegBus] mem_addr_o,
            output wire mem_we_o,
            output reg[3:0] mem_sel_o,
@@ -45,8 +60,6 @@ module mem(input wire rst,
     end
     
     always @ (*) begin
-        LLbit_we_o <= `WriteDisable;
-        LLbit_value_o <= `False;
         if (rst == `RstEnable) begin
             wd_o       <= `NOPRegAddr;
             wreg_o     <= `WriteDisable;
@@ -59,7 +72,13 @@ module mem(input wire rst,
             mem_sel_o  <= 4'b0000;
             mem_data_o <= `ZeroWord;
             mem_ce_o   <= `ChipDisable;
-            end else begin
+            LLbit_we_o <= `WriteDisable;
+            LLbit_value_o <= `False;
+            cp0_reg_we_o <= `WriteDisable;
+            cp0_reg_waddr_o <= 5'b00000;
+            cp0_reg_data_o <= `ZeroWord;
+            end 
+        else begin
             wd_o       <= wd_i;
             wreg_o     <= wreg_i;
             wdata_o    <= wdata_i;
@@ -70,6 +89,11 @@ module mem(input wire rst,
             mem_addr_o <= `ZeroWord;
             mem_sel_o  <= 4'b1111;
             mem_ce_o   <= `ChipDisable;
+            LLbit_we_o <= `WriteDisable;
+            LLbit_value_o <= `False;
+            cp0_reg_we_o <= cp0_reg_we_i;
+            cp0_reg_waddr_o <= cp0_reg_waddr_i;
+            cp0_reg_data_o <= cp0_reg_data_i;
             case (aluop_i)
                 `ALU_LB_OP: begin
                     mem_addr_o <= mem_addr_i;

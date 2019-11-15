@@ -2,7 +2,9 @@
 
 module id_ex(input	wire clk,
              input wire rst,
+             
              input wire[5:0] stall,
+             
              input wire[`AluOpBus] id_aluop,
              input wire[`AluSelBus] id_alusel,
              input wire[`RegBus] id_reg1,
@@ -13,6 +15,7 @@ module id_ex(input	wire clk,
              input wire id_is_in_delayslot,
              input wire next_inst_in_delayslot_i,
              input wire[`RegBus] id_inst,
+             
              output reg[`AluOpBus] ex_aluop,
              output reg[`AluSelBus] ex_alusel,
              output reg[`RegBus] ex_reg1,
