@@ -66,8 +66,6 @@ initial begin
     #1000 $stop; 
 end
 
-min_sopc my_pc(.clk(clk_50M), .rst(cpu_rst));
-
 //// 待测试用户设计
 //thinpad_top dut(
 //    .clk_50M(clk_50M),
