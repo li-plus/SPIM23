@@ -80,139 +80,21 @@ module thinpad_top(
     output wire video_de           //行数据有效信号，用于区分消隐�?
 );
 
-// 不使用内存、串口时，禁用其使能信号
-assign ext_ram_ce_n = 1'b1;
-assign ext_ram_oe_n = 1'b1;
-assign ext_ram_we_n = 1'b1;
-
-reg reset_uart = 1'b1;
-reg[7:0] recv = 8'b0;
-wire uart_finish;
-wire[7:0] uart_in;
-wire[7:0] uart_out;
-reg[3:0] state = 4'h0;
-reg we = 1'b0;
-reg ce = 1'b1;
-assign uart_in = recv;
-
-reg ram_ce = 1'b0;
-reg ram_oe = 1'b0;
-reg ram_we = 1'b0;
-reg ram_is_write = 1'b0;
-assign base_ram_ce_n = !ram_ce;
-assign base_ram_oe_n = !ram_oe;
-assign base_ram_we_n = !ram_we;
-assign base_ram_data = ram_is_write ? {24'h0, recv} : 32'hz;
-reg[19:0] addr;
-assign base_ram_addr = addr;
-reg[3:0] counter = 4'h0;
-SEG7_LUT seg7(dpy1,counter);
-
-always @(posedge clk_11M0592, posedge reset_btn) begin
-    if(reset_btn == 1'b1) begin
-        state <= 4'h0; 
-        addr <= dip_sw[19:0];
-        counter <= 0;
-    end else
-    case(state)
-        4'h0: begin
-            ram_ce <= 1'b0;
-            ram_is_write <= 1'b0;
-            ce <= 1'b1;
-            we <= 1'b0;
-            reset_uart <= 1'b1;
-            state <= 4'h1;
-        end
-        4'h1: begin
-            reset_uart <= 1'b0;
-            if(uart_finish == 1'b1) begin
-                recv <= uart_out;
-                ce <= 1'b0;
-                state <= 4'h2;
-            end
-        end
-        4'h2: begin
-            ram_ce <= 1'b1;
-            ram_we <= 1'b0;
-            ram_oe <= 1'b0;
-            ram_is_write <= 1'b1;
-            state <= 4'h3;
-        end
-        4'h3: begin
-            ram_we <= 1'b1;
-            state <= 4'h4;
-            counter <= counter + 1;
-        end
-        4'h4: begin
-            ram_is_write <= 1'b0;
-            addr <= addr + 1;
-            ram_we <= 1'b0;
-            ram_ce <= 1'b0;
-            if(counter == 10) begin
-                state <= 4'h5;
-                addr <= dip_sw[19:0];
-            end
-            else
-                state <= 4'h0;
-        end
-        4'h5: begin
-            // read from sram
-            ram_ce <= 1'b1;
-            ram_we <= 1'b0;
-            ram_oe <= 1'b0;
-            ram_is_write <= 1'b0;
-            ce <= 1'b0;
-            we <= 1'b0;
-            state <= 4'h6;
-        end
-        4'h6: begin
-            ram_oe <= 1'b1;
-            state <= 4'h7;
-        end
-        4'h7: begin
-            recv <= base_ram_data[7:0];
-            state <= 4'h8;
-        end
-        4'h8: begin
-            ce <= 1'b1;
-            we <= 1'b1;
-            ram_ce <= 1'b0;
-            ram_oe <= 1'b0;
-            state <= 4'h9;
-            reset_uart <= 1'b1;
-        end
-        4'h9: begin
-            reset_uart <= 1'b0;
-            if(uart_finish == 1'b1) begin
-                state <= 4'ha;
-                counter <= counter - 1;
-                addr <= addr + 1;
-            end
-        end
-        4'ha: begin
-            if(counter != 0) begin
-                state <= 4'h5;
-            end else
-                state <= 4'hb;
-        end
-    endcase
-end
-
-uart_controller uart_ctrl(
-      .clk(clk_11M0592),
-      .rst(reset_uart),
-      .ce(ce),
-      .we(we),
-      .data_bus_i(base_ram_data[7:0]),
-      .data_bus_o(base_ram_data[7:0]),
-      .tbre_i(uart_tbre),
-      .tsre_i(uart_tsre),
-      .data_ready_i(uart_dataready),
-      .rdn_o(uart_rdn),
-      .wrn_o(uart_wrn),
-      .data_o(uart_out),
-      .data_i(uart_in),
-      .uart_finish(uart_finish)
+openmips_min_sopc_wishbone sopc(
+    .clk(clk_50M),
+    .rst(reset_btn),
+    
+    .base_ram_data(base_ram_data),
+    .base_ram_addr(base_ram_addr),
+    .base_ram_be_n(base_ram_be_n),
+    .base_ram_oe_n(base_ram_oe_n),
+    .base_ram_we_n(base_ram_we_n),
+    
+    .ext_ram_data(ext_ram_data),
+    .ext_ram_addr(ext_ram_addr),
+    .ext_ram_be_n(ext_ram_be_n),
+    .ext_ram_oe_n(ext_ram_oe_n),
+    .ext_ram_we_n(ext_ram_we_n)
 );
 
 

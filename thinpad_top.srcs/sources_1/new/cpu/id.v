@@ -330,6 +330,7 @@ module id(input wire rst,
                             alusel_o <= `ALU_SEL_NOP; reg1_read_o <= `ReadDisable; reg2_read_o <= `ReadDisable;
                             instvalid <= `InstValid; excepttype_is_syscall<= `True;
                         end
+                        default: ;
                     endcase
                 end
                 `EXE_ORI: begin
@@ -664,6 +665,7 @@ module id(input wire rst,
                                 reg2_read_o <= `ReadDisable;
                             end
                         end
+                        default: ;
                     endcase
                 end
                 default: ;

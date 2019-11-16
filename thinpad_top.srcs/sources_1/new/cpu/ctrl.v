@@ -1,15 +1,18 @@
 `include "defines.vh"
 
-module ctrl(input wire rst,
-            input wire stallreq_from_id,
-            input wire stallreq_from_ex,
+module ctrl(
+    input wire rst,
 
-            input wire[31:0] excepttype_i,
-            input wire[`RegBus] cp0_epc_i,
-
-            output reg[`RegBus] new_pc,
-            output reg flush,
-            output reg[5:0] stall
+    input wire[31:0] excepttype_i,
+    input wire[`RegBus] cp0_epc_i,
+    
+    input wire stallreq_from_if,
+    input wire stallreq_from_id,
+    input wire stallreq_from_ex,
+    input wire stallreq_from_mem,	
+    output reg[`RegBus] new_pc,
+    output reg flush,
+    output reg[5:0] stall
 );
     
     
@@ -29,11 +32,14 @@ module ctrl(input wire rst,
 				32'h0000000c: new_pc <= 32'h00000040; //ov
 				32'h0000000e: new_pc <= cp0_epc_i; //eret
 				default: ;
-			endcase 						
+            endcase
+        end else if(stallreq_from_mem == `Stop) begin
+            stall <= 6'b011111;
+            flush <= 1'b0;
 		end else if(stallreq_from_ex == `Stop) begin
 			stall <= 6'b001111;
 			flush <= 1'b0;		
-		end else if(stallreq_from_id == `Stop) begin
+		end else if(stallreq_from_id == `Stop || stallreq_from_if == `Stop) begin
 			stall <= 6'b000111;	
 			flush <= 1'b0;		
 		end else begin
