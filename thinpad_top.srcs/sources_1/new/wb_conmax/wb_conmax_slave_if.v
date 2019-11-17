@@ -241,8 +241,8 @@ wire	[2:0]		mast_sel_pe;
 wire	[2:0]		mast_sel;
 
 reg			next;
-reg			m0_cyc_r, m1_cyc_r, m2_cyc_r, m3_cyc_r;
-reg			m4_cyc_r, m5_cyc_r, m6_cyc_r, m7_cyc_r;
+//reg			m0_cyc_r, m1_cyc_r, m2_cyc_r, m3_cyc_r;
+//reg			m4_cyc_r, m5_cyc_r, m6_cyc_r, m7_cyc_r;
 
 ////////////////////////////////////////////////////////////////////
 //
@@ -361,43 +361,48 @@ always @(mast_sel or m0_we_i or m1_we_i or m2_we_i or m3_we_i
 	   default: wb_we_o = 1'bx;
 	endcase
 
-always @(posedge clk_i)
-	m0_cyc_r <= #1 m0_cyc_i;
+//always @(posedge clk_i)
+//	m0_cyc_r <= #1 m0_cyc_i;
 
-always @(posedge clk_i)
-	m1_cyc_r <= #1 m1_cyc_i;
+//always @(posedge clk_i)
+//	m1_cyc_r <= #1 m1_cyc_i;
 
-always @(posedge clk_i)
-	m2_cyc_r <= #1 m2_cyc_i;
+//always @(posedge clk_i)
+//	m2_cyc_r <= #1 m2_cyc_i;
 
-always @(posedge clk_i)
-	m3_cyc_r <= #1 m3_cyc_i;
+//always @(posedge clk_i)
+//	m3_cyc_r <= #1 m3_cyc_i;
 
-always @(posedge clk_i)
-	m4_cyc_r <= #1 m4_cyc_i;
+//always @(posedge clk_i)
+//	m4_cyc_r <= #1 m4_cyc_i;
 
-always @(posedge clk_i)
-	m5_cyc_r <= #1 m5_cyc_i;
+//always @(posedge clk_i)
+//	m5_cyc_r <= #1 m5_cyc_i;
 
-always @(posedge clk_i)
-	m6_cyc_r <= #1 m6_cyc_i;
+//always @(posedge clk_i)
+//	m6_cyc_r <= #1 m6_cyc_i;
 
-always @(posedge clk_i)
-	m7_cyc_r <= #1 m7_cyc_i;
+//always @(posedge clk_i)
+//	m7_cyc_r <= #1 m7_cyc_i;
 
-always @(mast_sel or m0_cyc_i or m1_cyc_i or m2_cyc_i or m3_cyc_i
-	or m4_cyc_i or m5_cyc_i or m6_cyc_i or m7_cyc_i
-	or m0_cyc_r or m1_cyc_r or m2_cyc_r or m3_cyc_r
-	or m4_cyc_r or m5_cyc_r or m6_cyc_r or m7_cyc_r)
+always @(*)
 	case(mast_sel)	// synopsys parallel_case
-	   3'd0: wb_cyc_o = m0_cyc_i & m0_cyc_r;
-	   3'd1: wb_cyc_o = m1_cyc_i & m1_cyc_r;
-	   3'd2: wb_cyc_o = m2_cyc_i & m2_cyc_r;
-	   3'd3: wb_cyc_o = m3_cyc_i & m3_cyc_r;
-	   3'd4: wb_cyc_o = m4_cyc_i & m4_cyc_r;
-	   3'd5: wb_cyc_o = m5_cyc_i & m5_cyc_r;
-	   3'd6: wb_cyc_o = m6_cyc_i & m6_cyc_r;
-	   3'd7: wb_cyc_o = m7_cyc_i & m7_cyc_r;
+//	   3'd0: wb_cyc_o = m0_cyc_i & m0_cyc_r;
+//	   3'd1: wb_cyc_o = m1_cyc_i & m1_cyc_r;
+//	   3'd2: wb_cyc_o = m2_cyc_i & m2_cyc_r;
+//	   3'd3: wb_cyc_o = m3_cyc_i & m3_cyc_r;
+//	   3'd4: wb_cyc_o = m4_cyc_i & m4_cyc_r;
+//	   3'd5: wb_cyc_o = m5_cyc_i & m5_cyc_r;
+//	   3'd6: wb_cyc_o = m6_cyc_i & m6_cyc_r;
+//	   3'd7: wb_cyc_o = m7_cyc_i & m7_cyc_r;
+        3'd0: wb_cyc_o = m0_cyc_i;
+        3'd1: wb_cyc_o = m1_cyc_i;
+        3'd2: wb_cyc_o = m2_cyc_i;
+        3'd3: wb_cyc_o = m3_cyc_i;
+        3'd4: wb_cyc_o = m4_cyc_i;
+        3'd5: wb_cyc_o = m5_cyc_i;
+        3'd6: wb_cyc_o = m6_cyc_i;
+        3'd7: wb_cyc_o = m7_cyc_i;
 	   default: wb_cyc_o = 1'b0;
 	endcase
 

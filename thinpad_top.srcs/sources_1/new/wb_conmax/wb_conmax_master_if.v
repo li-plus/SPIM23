@@ -498,67 +498,67 @@ assign s13_cyc_o_next = (wb_cyc_i & !wb_stb_i) ? s13_cyc_o : ((slv_sel==4'd13) ?
 assign s14_cyc_o_next = (wb_cyc_i & !wb_stb_i) ? s14_cyc_o : ((slv_sel==4'd14) ? wb_cyc_i : 1'b0);
 assign s15_cyc_o_next = (wb_cyc_i & !wb_stb_i) ? s15_cyc_o : ((slv_sel==4'd15) ? wb_cyc_i : 1'b0);
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s0_cyc_o <= #1 1'b0; 
 	else		s0_cyc_o <= #1 s0_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s1_cyc_o <= #1 1'b0; 
 	else		s1_cyc_o <= #1 s1_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s2_cyc_o <= #1 1'b0; 
 	else		s2_cyc_o <= #1 s2_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s3_cyc_o <= #1 1'b0; 
 	else		s3_cyc_o <= #1 s3_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s4_cyc_o <= #1 1'b0; 
 	else		s4_cyc_o <= #1 s4_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s5_cyc_o <= #1 1'b0; 
 	else		s5_cyc_o <= #1 s5_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s6_cyc_o <= #1 1'b0; 
 	else		s6_cyc_o <= #1 s6_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s7_cyc_o <= #1 1'b0; 
 	else		s7_cyc_o <= #1 s7_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s8_cyc_o <= #1 1'b0; 
 	else		s8_cyc_o <= #1 s8_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s9_cyc_o <= #1 1'b0; 
 	else		s9_cyc_o <= #1 s9_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s10_cyc_o <= #1 1'b0; 
 	else		s10_cyc_o <= #1 s10_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s11_cyc_o <= #1 1'b0; 
 	else		s11_cyc_o <= #1 s11_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s12_cyc_o <= #1 1'b0; 
 	else		s12_cyc_o <= #1 s12_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s13_cyc_o <= #1 1'b0; 
 	else		s13_cyc_o <= #1 s13_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s14_cyc_o <= #1 1'b0; 
 	else		s14_cyc_o <= #1 s14_cyc_o_next; 
 
-always @(posedge clk_i or posedge rst_i) 
+always @(*) 
 	if(rst_i)	s15_cyc_o <= #1 1'b0; 
 	else		s15_cyc_o <= #1 s15_cyc_o_next; 
 

@@ -3,7 +3,7 @@
 
 module inst_rom(
     input wire ce,
-    input wire[`InstAddrBus] addr,
+    input wire[19:0] addr,
     output reg[`InstBus]     inst
 );
 
@@ -14,7 +14,7 @@ always @(*) begin
     if(ce == `ChipDisable) begin
         inst <= `ZeroWord;
     end else begin
-        inst <= inst_mem[addr[18:2]];
+        inst <= inst_mem[addr];
     end
 end
 

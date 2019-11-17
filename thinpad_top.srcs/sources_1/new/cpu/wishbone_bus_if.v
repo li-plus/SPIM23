@@ -68,7 +68,7 @@ module wishbone_bus_if(
 						
 						if(stall_i != 6'b000000) wishbone_state <= `WB_WAIT_FOR_STALL;				
 					end else if(flush_i == `True) begin
-					  wishbone_stb_o <= 1'b0;
+					    wishbone_stb_o <= 1'b0;
 						wishbone_cyc_o <= 1'b0;
 						wishbone_addr_o <= `ZeroWord;
 						wishbone_data_o <= `ZeroWord;
@@ -95,7 +95,7 @@ module wishbone_bus_if(
 			stallreq <= `NoStop;
 			case (wishbone_state)
 				`WB_IDLE:		begin
-					if(cpu_ce_i == 1'b1 && flush_i == `False) begin
+					if(cpu_ce_i == `True && flush_i == `False) begin
 						stallreq <= `Stop;
 						cpu_data_o <= `ZeroWord;				
 					end
