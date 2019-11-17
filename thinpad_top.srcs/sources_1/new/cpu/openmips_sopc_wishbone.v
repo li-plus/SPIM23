@@ -22,7 +22,10 @@ module openmips_min_sopc_wishbone(
     
     // Uart
     input wire uart_rxd,
-    output wire uart_txd
+    output wire uart_txd,
+    
+    output wire[`InstAddrBus] pc_o,
+    output wire[`InstBus] inst_o
 );
 
     wire[7:0] int;
@@ -112,7 +115,9 @@ module openmips_min_sopc_wishbone(
     .dwishbone_stb_o(m0_stb_i),
     .dwishbone_cyc_o(m0_cyc_i),
 
-    .timer_int_o(timer_int)	
+    .timer_int_o(timer_int),
+    .pc_o(pc_o),
+    .inst_o(inst_o)
 );
 
 
@@ -304,14 +309,14 @@ wb_conmax_top wb_conmax_top0(
 	    .s1_rty_i(1'b0),
 
 	    // Slave 2 Interface
-	    .s2_data_i(),
-	    .s2_data_o(),
-	    .s2_addr_o(),
-	    .s2_sel_o(),
-	    .s2_we_o(), 
-	    .s2_cyc_o(), 
-	    .s2_stb_o(),
-	    .s2_ack_i(1'b0), 
+	    .s2_data_i(s2_data_i),
+	    .s2_data_o(s2_data_o),
+	    .s2_addr_o(s2_addr_o),
+	    .s2_sel_o(s2_sel_o),
+	    .s2_we_o(s2_we_o), 
+	    .s2_cyc_o(s2_cyc_o), 
+	    .s2_stb_o(s2_stb_o),
+	    .s2_ack_i(s2_ack_i), 
 	    .s2_err_i(1'b0), 
 	    .s2_rty_i(1'b0),
 

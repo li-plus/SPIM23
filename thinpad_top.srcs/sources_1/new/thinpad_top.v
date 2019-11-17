@@ -96,6 +96,15 @@ pll_example clock_gen
     .clk_in1(clk_50M)
 );
 
+wire[31:0] pc;
+wire[31:0] inst;
+
+assign leds = base_ram_addr[15:0];
+wire[7:0] number;
+assign number = inst[31:24];
+SEG7_LUT segL(.oSEG1(dpy0), .iDIG(number[3:0]));
+SEG7_LUT segH(.oSEG1(dpy1), .iDIG(number[7:4]));
+
 openmips_min_sopc_wishbone sopc(
     .clk(clk_20M),
     .rst(reset_btn),
@@ -105,15 +114,20 @@ openmips_min_sopc_wishbone sopc(
     .base_ram_be_n(base_ram_be_n),
     .base_ram_oe_n(base_ram_oe_n),
     .base_ram_we_n(base_ram_we_n),
+    .base_ram_ce_n(base_ram_ce_n),
     
     .ext_ram_data(ext_ram_data),
     .ext_ram_addr(ext_ram_addr),
     .ext_ram_be_n(ext_ram_be_n),
     .ext_ram_oe_n(ext_ram_oe_n),
     .ext_ram_we_n(ext_ram_we_n),
+    .ext_ram_ce_n(ext_ram_ce_n),
     
     .uart_rxd(rxd),
-    .uart_txd(txd)
+    .uart_txd(txd),
+    
+    .pc_o(pc),
+    .inst_o(inst)
 );
 
 

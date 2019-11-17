@@ -25,7 +25,11 @@ module openmips_wishbone(
     output wire dwishbone_stb_o,
     output wire dwishbone_cyc_o,
     
-    output wire timer_int_o
+    output wire timer_int_o,
+    
+    // for debug
+    output wire[`InstAddrBus] pc_o,
+    output wire[`InstBus] inst_o
 );
 
 // pc (if)
@@ -33,6 +37,9 @@ wire[`InstAddrBus] pc;
 wire[`InstBus] inst_i;	
 wire[`InstAddrBus] id_pc_i;
 wire[`InstBus] id_inst_i;
+
+assign pc_o = pc;
+assign inst_o = id_inst_i;
 
 // id
 wire[`AluOpBus] id_aluop_o;

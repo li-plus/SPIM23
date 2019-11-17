@@ -51,8 +51,8 @@ output            SRAM_WE_N;
 //`define ACK 3'h5
 
 wire wb_acc = wb_cyc_i & wb_stb_i; // wb access
-wire wb_wr = wb_acc & wb_we_i; // write
-wire wb_rd = wb_acc & ~wb_we_i; // read
+wire wb_wr = wb_acc & wb_we_i & ~wb_rst_i; // write
+wire wb_rd = wb_acc & ~wb_we_i & ~wb_rst_i; // read
 
 reg[1:0] state;
 reg[31:0] sram_out;

@@ -20,7 +20,7 @@ module uart_controller(
 );
 
 parameter ClkFrequency = 20000000;
-parameter Baud = 115200;
+parameter Baud = 9600;
 
 // clk signals
 input    wb_clk_i;
@@ -74,7 +74,8 @@ async_transmitter #(.ClkFrequency(ClkFrequency),.Baud(Baud))
  );
  
  always @(posedge ext_uart_ready) begin
-    if (wb_rst_i) begin 
+    if (wb_rst_i) begin
+         serial_read_data <= 8'b00000000;
          serial_read_status <= 1'b0;
     end else begin
          serial_read_status <= ~serial_read_status;
@@ -85,26 +86,31 @@ async_transmitter #(.ClkFrequency(ClkFrequency),.Baud(Baud))
  always @(posedge wb_clk_i) begin
     if(wb_rst_i) begin
         state <= 2'b00;
-        ext_uart_send_start <= `False;
         wb_ack_o <= 1'b0;
         already_read_status <= serial_read_status;
+        ext_uart_send_start <= 1'b0;
     end else if(wb_acc) begin
         case(state)
             2'b00: begin
                 if(wb_we_i) begin
                     state <= 2'b01;
-                    ext_uart_send_start <= `True;
+                    ext_uart_send_start <= 1'b1;
                 end else begin
                     wb_ack_o <= 1'b1;
                     already_read_status <= serial_read_status;
+                    state <= 2'b11;
+                    ext_uart_send_start <= 1'b0;
                 end
             end
             2'b01: state <= 2'b10;
-            2'b10: state <= 2'b11;
-            2'b11: begin
-                ext_uart_send_start <= `False;
-                state <= 2'b00;
+            2'b10: begin
+                state <= 2'b11;
                 wb_ack_o <= 1'b1;
+            end
+            2'b11: begin
+                state <= 2'b00;
+                wb_ack_o <= 1'b0;
+                ext_uart_send_start <= 1'b0;
             end
         endcase
     end
@@ -113,7 +119,6 @@ async_transmitter #(.ClkFrequency(ClkFrequency),.Baud(Baud))
  always @(*) begin
     if(wb_rst_i) begin
         wb_dat_o <= 32'h00000000;
-        serial_read_data <= 8'b00000000;
     end
     else begin
         if(wb_adr_i[3:0] == 4'hc) begin
