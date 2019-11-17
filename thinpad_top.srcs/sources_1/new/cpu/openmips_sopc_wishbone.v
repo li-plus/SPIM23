@@ -4,7 +4,7 @@ module openmips_min_sopc_wishbone(
 	input wire clk,
 	input wire rst,
 	
-	// baseRAM and extRAM
+	// baseRAM
     inout wire[31:0] base_ram_data,
     output wire[19:0] base_ram_addr,
     output wire[3:0] base_ram_be_n,
@@ -12,13 +12,17 @@ module openmips_min_sopc_wishbone(
     output wire base_ram_oe_n,
     output wire base_ram_we_n,
 
-    //ExtRAM信号
+    // ExtRAM
     inout wire[31:0] ext_ram_data,
     output wire[19:0] ext_ram_addr,
     output wire[3:0] ext_ram_be_n,
     output wire ext_ram_ce_n,
     output wire ext_ram_oe_n,
-    output wire ext_ram_we_n
+    output wire ext_ram_we_n,
+    
+    // Uart
+    input wire uart_rxd,
+    output wire uart_txd
 );
 
     wire[7:0] int;
@@ -62,14 +66,14 @@ module openmips_min_sopc_wishbone(
 	wire       s1_stb_o;
 	wire       s1_ack_i;
   
-//	wire[31:0] s2_data_i;
-//	wire[31:0] s2_data_o;
-//	wire[31:0] s2_addr_o;
-//	wire[3:0]  s2_sel_o;
-//	wire       s2_we_o; 
-//	wire       s2_cyc_o; 
-//	wire       s2_stb_o;
-//	wire       s2_ack_i;
+	wire[31:0] s2_data_i;
+	wire[31:0] s2_data_o;
+	wire[31:0] s2_addr_o;
+	wire[3:0]  s2_sel_o;
+	wire       s2_we_o; 
+	wire       s2_cyc_o; 
+	wire       s2_stb_o;
+	wire       s2_ack_i;
 	
 //	wire[31:0] s3_data_i;
 //	wire[31:0] s3_data_o;
@@ -79,8 +83,10 @@ module openmips_min_sopc_wishbone(
 //	wire       s3_cyc_o; 
 //	wire       s3_stb_o;
 //	wire       s3_ack_i;	  
-  
- assign int = {5'b00000, timer_int};
+ 
+ wire uart_int;
+ 
+ assign int = {timer_int, 2'b00, uart_int, 2'b00};
  
  openmips_wishbone openmips0(
     .clk(clk),
@@ -154,6 +160,25 @@ sram_controller ext_ram_ctrl(
     .SRAM_CE_N(ext_ram_ce_n),
     .SRAM_OE_N(ext_ram_oe_n),
     .SRAM_WE_N(ext_ram_we_n)
+);
+
+// 2 - Uart
+uart_controller uart_ctrl(
+    .wb_clk_i(clk),
+    .wb_rst_i(rst),
+    
+    .wb_dat_i(s2_data_o),
+    .wb_adr_i(s2_addr_o),
+    .wb_sel_i(s2_sel_o),
+    .wb_we_i(s2_we_o),
+    .wb_cyc_i(s2_cyc_o),
+    .wb_stb_i(s2_stb_o),
+    
+    .wb_dat_o(s2_data_i),
+    .wb_ack_o(s2_ack_i),
+    .uart_txd(uart_txd),
+    .uart_rxd(uart_rxd),
+    .int_o(uart_int)
 );
 
 // Wishbone InterConn Matrix

@@ -21,6 +21,8 @@
 `define ChipEnable 1'b1
 `define ChipDisable 1'b0
 
+`define EntryAddr 32'h80000000
+
 `define ZeroWord 32'h00000000
 `define ZeroAddr `ZeroWord
 

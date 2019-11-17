@@ -188,6 +188,10 @@ wire[`RegBus] ram_data_o;
 wire ram_ce_o;
 wire[`RegBus] ram_data_i;
 
+// for MMU
+wire[`InstAddrBus] physical_pc;
+wire[31:0] physical_ram_addr;
+
 pc_reg pc_reg0(
     .clk(clk),
     .rst(rst),
@@ -539,7 +543,7 @@ hilo_reg hilo_reg0(
 
 ctrl ctrl0(
     .rst(rst),
-    
+    .ebase_i(cp0_ebase),
     .excepttype_i(mem_excepttype_o),
     .cp0_epc_i(latest_epc),
     
@@ -601,7 +605,19 @@ cp0_reg cp0_reg0(
     .timer_int_o(timer_int_o)
 );
 
-// instruction wishbone
+mmu mmu_if(
+    .rst(rst),
+    .addr_i(pc),
+    .addr_o(physical_pc)
+);
+
+mmu mmu_data(
+    .rst(rst),
+    .addr_i(ram_addr_o),
+    .addr_o(physical_ram_addr)
+);
+
+// data wishbone
 wishbone_bus_if dwishbone_bus_if(
     .clk(clk),
     .rst(rst),
@@ -614,7 +630,7 @@ wishbone_bus_if dwishbone_bus_if(
     
     .cpu_ce_i(ram_ce_o),
     .cpu_data_i(ram_data_o),
-    .cpu_addr_i(ram_addr_o),
+    .cpu_addr_i(physical_ram_addr),
     .cpu_we_i(ram_we_o),
     .cpu_sel_i(ram_sel_o),
     .cpu_data_o(ram_data_i),
@@ -632,7 +648,7 @@ wishbone_bus_if dwishbone_bus_if(
     .stallreq(stallreq_from_mem)	
 );
 
-// data wishbone
+// instruction wishbone
 wishbone_bus_if iwishbone_bus_if(
     .clk(clk),
     .rst(rst),
@@ -644,7 +660,7 @@ wishbone_bus_if iwishbone_bus_if(
     
     .cpu_ce_i(rom_ce),
     .cpu_data_i(32'h00000000),
-    .cpu_addr_i(pc),
+    .cpu_addr_i(physical_pc),
     .cpu_we_i(1'b0),
     .cpu_sel_i(4'b1111),
     .cpu_data_o(inst_i),

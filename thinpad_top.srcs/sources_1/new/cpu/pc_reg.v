@@ -16,7 +16,7 @@ module pc_reg(
 
 always @ (posedge clk) begin
     if (ce == `ChipDisable)
-        pc <= `ZeroWord;
+        pc <= `EntryAddr;
     else if(flush == `True)
         pc <= new_pc;
     else if (stall[0] == `NoStop) begin
