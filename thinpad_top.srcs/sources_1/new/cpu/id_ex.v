@@ -2,7 +2,10 @@
 
 module id_ex(input	wire clk,
              input wire rst,
+             
              input wire[5:0] stall,
+             input wire flush,
+             
              input wire[`AluOpBus] id_aluop,
              input wire[`AluSelBus] id_alusel,
              input wire[`RegBus] id_reg1,
@@ -13,6 +16,9 @@ module id_ex(input	wire clk,
              input wire id_is_in_delayslot,
              input wire next_inst_in_delayslot_i,
              input wire[`RegBus] id_inst,
+             input wire[`RegBus] id_current_inst_address,
+             input wire[31:0] id_excepttype,
+             
              output reg[`AluOpBus] ex_aluop,
              output reg[`AluSelBus] ex_alusel,
              output reg[`RegBus] ex_reg1,
@@ -22,10 +28,13 @@ module id_ex(input	wire clk,
              output reg[`RegBus] ex_link_address,
              output reg ex_is_in_delayslot,
              output reg is_in_delayslot_o,
-             output reg[`RegBus] ex_inst);
+             output reg[`RegBus] ex_inst,
+             output reg[`RegBus] ex_current_inst_address,
+             output reg[31:0] ex_excepttype
+);
 
 always @ (posedge clk) begin
-    if (rst == `RstEnable) begin
+    if (rst == `RstEnable || flush == `True) begin
         ex_aluop           <= `ALU_NOP_OP;
         ex_alusel          <= `ALU_SEL_NOP;
         ex_reg1            <= `ZeroWord;
@@ -36,6 +45,8 @@ always @ (posedge clk) begin
         ex_is_in_delayslot <= `NotInDelaySlot;
         is_in_delayslot_o  <= `NotInDelaySlot;
         ex_inst            <= `ZeroWord;
+        ex_excepttype <= `ZeroWord;
+        ex_current_inst_address <= `ZeroWord;
     end
     else if (stall[2] == `Stop && stall[3] == `NoStop) begin
         ex_aluop           <= `ALU_NOP_OP;
@@ -47,6 +58,8 @@ always @ (posedge clk) begin
         ex_link_address    <= `ZeroWord;
         ex_is_in_delayslot <= `NotInDelaySlot;
         ex_inst            <= `ZeroWord;
+        ex_excepttype <= `ZeroWord;
+        ex_current_inst_address <= `ZeroWord;
     end
     else if (stall[2] == `NoStop) begin
         ex_aluop           <= id_aluop;
@@ -59,6 +72,8 @@ always @ (posedge clk) begin
         ex_is_in_delayslot <= id_is_in_delayslot;
         is_in_delayslot_o  <= next_inst_in_delayslot_i;
         ex_inst            <= id_inst;
+        ex_excepttype <= id_excepttype;
+        ex_current_inst_address <= id_current_inst_address;
     end
 end
         

@@ -10,9 +10,23 @@ module register(input wire clk,
                 output reg[`RegBus] rdata1,
                 input wire re2,
                 input wire[`RegAddrBus] raddr2,
-                output reg[`RegBus] rdata2);
+                output reg[`RegBus] rdata2
+ `ifdef DEBUG
+                ,output wire[`RegBus] r1,
+                output wire[`RegBus] r2,
+                output wire[`RegBus] r3,
+                output wire[`RegBus] r4
+ `endif
+);
     
     reg[`RegBus]  regs[0:`RegNum-1];
+    
+    `ifdef DEBUG
+        assign r1 = regs[4];
+        assign r2 = regs[2];
+        assign r3 = regs[3];
+        assign r4 = regs[4];
+    `endif
     
     always @ (posedge clk) begin
         if (rst == `RstDisable) begin
