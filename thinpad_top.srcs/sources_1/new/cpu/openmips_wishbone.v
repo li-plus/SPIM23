@@ -26,10 +26,13 @@ module openmips_wishbone(
     output wire dwishbone_cyc_o,
     
     output wire timer_int_o,
-    
+  
     // for debug
     output wire[`InstAddrBus] pc_o,
     output wire[`InstBus] inst_o
+    `ifdef DEBUG
+    ,output wire[`RegBus] r1_o
+    `endif
 );
 
 // pc (if)
@@ -199,6 +202,7 @@ wire[`RegBus] ram_data_i;
 wire[`InstAddrBus] physical_pc;
 wire[31:0] physical_ram_addr;
 
+
 pc_reg pc_reg0(
     .clk(clk),
     .rst(rst),
@@ -285,6 +289,9 @@ register register1(
     .re2 (reg2_read),
     .raddr2 (reg2_addr),
     .rdata2 (reg2_data)
+    `ifdef DEBUG
+    ,.r1(r1_o)
+    `endif
 );
 
 id_ex id_ex0(

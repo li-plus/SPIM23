@@ -29,6 +29,6 @@ module uart_wrapper(
 
 assign uart_addr_o = (uart_addr_i[15:0] == 16'h03f8 ? 3'h0 : (uart_addr_i[15:0] == 16'h03fc ? 3'h5 : uart_addr_i[2:0]));
 assign uart_data_o = uart_addr_i[15:0] == 16'h03fc ? 
-                     {30'h0, uart_data_i[0], uart_data_i[5]} : {24'h000000, uart_data_i};
+                     {30'h0, uart_data_i[0], uart_data_i[6]} : {24'h000000, uart_data_i};
 
 endmodule

@@ -195,7 +195,11 @@ module mem(input wire rst,
                             wdata_o <= {{16{1'b0}}, mem_data_i[31:16]};
                             mem_sel_o <= 4'b1100;
                         end
-                        default: wdata_o <= `ZeroWord;
+                        default: begin
+                            wdata_o <= `ZeroWord;
+                            mem_sel_o <= 4'b0000;
+                            mem_ce_o <= `ChipDisable;
+                        end
                     endcase
                 end
                 `ALU_LW_OP: begin

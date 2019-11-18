@@ -98,10 +98,7 @@ pll_example clock_gen
 
 wire[31:0] pc;
 wire[31:0] inst;
-
-assign leds = base_ram_addr[15:0];
 wire[7:0] number;
-assign number = inst[31:24];
 SEG7_LUT segL(.oSEG1(dpy0), .iDIG(number[3:0]));
 SEG7_LUT segH(.oSEG1(dpy1), .iDIG(number[7:4]));
 
@@ -128,6 +125,9 @@ openmips_min_sopc_wishbone sopc(
     
     .pc_o(pc),
     .inst_o(inst)
+    `ifdef DEBUG
+    ,.r1_o({number, 8'hzz, leds})
+    `endif
 );
 
 

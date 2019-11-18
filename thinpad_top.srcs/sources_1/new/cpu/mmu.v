@@ -14,7 +14,7 @@ always@(*) begin
     end
     else begin
         case(addr_i[31:24])
-            8'h80: begin // 0x8000000 - 0x807fffff
+            8'h80: begin // 0x80000000 - 0x807fffff
                 if(addr_i[23:22] == 2'b00) addr_o <= {4'h0, 6'b000000, addr_i[21:0]}; // base RAM
                 else           addr_o <= {4'h1, 6'b000000, addr_i[21:0]}; // ext RAM
             end

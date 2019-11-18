@@ -26,6 +26,9 @@ module openmips_min_sopc_wishbone(
     
     output wire[`InstAddrBus] pc_o,
     output wire[`InstBus] inst_o
+    `ifdef DEBUG
+    ,output wire[`RegBus] r1_o
+    `endif
 );
 
     wire[7:0] int;
@@ -118,6 +121,9 @@ module openmips_min_sopc_wishbone(
     .timer_int_o(timer_int),
     .pc_o(pc_o),
     .inst_o(inst_o)
+    `ifdef DEBUG
+    ,.r1_o(r1_o)
+    `endif
 );
 
 
