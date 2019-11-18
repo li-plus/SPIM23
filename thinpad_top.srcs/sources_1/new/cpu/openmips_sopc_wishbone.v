@@ -167,23 +167,37 @@ sram_controller ext_ram_ctrl(
     .SRAM_WE_N(ext_ram_we_n)
 );
 
+wire[31:0] uart_addr;
+wire[31:0] uart_data;
+
 // 2 - Uart
-uart_controller uart_ctrl(
+uart_top uart_ctrl(
     .wb_clk_i(clk),
     .wb_rst_i(rst),
-    
+    .wb_adr_i(uart_addr),
     .wb_dat_i(s2_data_o),
-    .wb_adr_i(s2_addr_o),
-    .wb_sel_i(s2_sel_o),
-    .wb_we_i(s2_we_o),
+    .wb_dat_o(uart_data), 
+    .wb_we_i(s2_we_o), 
+    .wb_stb_i(s2_stb_o), 
     .wb_cyc_i(s2_cyc_o),
-    .wb_stb_i(s2_stb_o),
-    
-    .wb_dat_o(s2_data_i),
     .wb_ack_o(s2_ack_i),
-    .uart_txd(uart_txd),
-    .uart_rxd(uart_rxd),
-    .int_o(uart_int)
+    .wb_sel_i(s2_sel_o),
+    .int_o(uart_int),
+    .stx_pad_o(uart_txd),
+    .srx_pad_i(uart_rxd),
+    .cts_pad_i(1'b0),
+    .dsr_pad_i(1'b0), 
+    .ri_pad_i(1'b0), 
+    .dcd_pad_i(1'b0),
+    .rts_pad_o(),  
+    .dtr_pad_o()
+);
+
+uart_wrapper uart_adapter(
+    .uart_addr_i(s2_addr_o),
+    .uart_addr_o(uart_addr), // MMU addr -> Uart addr
+    .uart_data_i(uart_data),
+    .uart_data_o(s2_data_i) // Uart data -> CPU data
 );
 
 // Wishbone InterConn Matrix

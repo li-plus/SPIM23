@@ -19,7 +19,12 @@ always@(*) begin
                 else           addr_o <= {4'h1, 6'b000000, addr_i[21:0]}; // ext RAM
             end
             8'hbf: begin
-                addr_o <= {4'h2, addr_i[27:0]}; // uart
+                if(addr_i[23:20] == 4'hd)
+                    addr_o <= {12'h200, addr_i[19:0]}; // uart - 0xbfd
+//                else if(addr_i[23:20] == 4'hc)
+//                    addr_o <= {12'h300, addr_i[19:0]}; // rom - 0xbfc
+                else
+                    addr_o <= `ZeroWord;
             end
             default: addr_o <= `ZeroWord;
         endcase
