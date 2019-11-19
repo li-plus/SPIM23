@@ -15,7 +15,9 @@ module openmips_min_sopc_tb();
   initial begin
     rst = `RstEnable;
     #195 rst= `RstDisable;
-    #10000 rst = `RstEnable;
+    `ifdef USE_CPLD_UART
+    //#2000 cpld.pc_send_byte(8'hbe);
+    `endif
   end
   
   wire[31:0] base_ram_data;
@@ -47,9 +49,36 @@ module openmips_min_sopc_tb();
     .data(ext_ram_data)
   );
   
+  `ifdef USE_CPLD_UART
+  wire uart_rdn;
+  wire uart_wrn;
+  wire uart_dataready;
+  wire uart_tbre;
+  wire uart_tsre;
+  
+  cpld_model cpld(
+      .clk_uart(CLOCK_50),
+      .uart_rdn(uart_rdn),
+      .uart_wrn(uart_wrn),
+      .uart_dataready(uart_dataready),
+      .uart_tbre(uart_tbre),
+      .uart_tsre(uart_tsre),
+      .data(base_ram_data[7:0])
+  );
+  
+  `endif
+  
   openmips_min_sopc_wishbone sopc(
       .clk(CLOCK_50),
       .rst(rst),
+      
+      `ifdef USE_CPLD_UART
+      .uart_tbre(uart_tbre),
+      .uart_tsre(uart_tsre),
+      .uart_data_ready(uart_dataready),
+      .uart_rdn(uart_rdn),
+      .uart_wrn(uart_wrn),
+      `endif
       
       .base_ram_data(base_ram_data),
       .base_ram_addr(base_ram_addr),
@@ -62,10 +91,7 @@ module openmips_min_sopc_tb();
       .ext_ram_be_n(ext_ram_be_n),
       .ext_ram_ce_n(ext_ram_ce_n),
       .ext_ram_we_n(ext_ram_we_n),
-      .ext_ram_oe_n(ext_ram_oe_n),
-      
-      .uart_rxd(),
-      .uart_txd()
+      .ext_ram_oe_n(ext_ram_oe_n)
   );
 
 endmodule

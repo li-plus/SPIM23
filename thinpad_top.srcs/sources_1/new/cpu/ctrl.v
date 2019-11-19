@@ -9,7 +9,10 @@ module ctrl(
     input wire stallreq_from_if,
     input wire stallreq_from_id,
     input wire stallreq_from_ex,
-    input wire stallreq_from_mem,	
+    input wire stallreq_from_mem,
+    `ifdef USE_CPLD_UART
+    input wire stallreq_from_uart,
+    `endif
     output reg[`RegBus] new_pc,
     output reg flush,
     output reg[5:0] stall
@@ -41,7 +44,12 @@ module ctrl(
 			flush <= 1'b0;		
 		end else if(stallreq_from_id == `Stop || stallreq_from_if == `Stop) begin
 			stall <= 6'b000111;	
-			flush <= 1'b0;		
+			flush <= 1'b0;
+        `ifdef USE_CPLD_UART
+        end else if(stallreq_from_uart == `Stop) begin
+            stall <= 6'b011111;
+            flush <= 1'b0;
+        `endif
 		end else begin
 			stall <= 6'b000000;
 			flush <= 1'b0;

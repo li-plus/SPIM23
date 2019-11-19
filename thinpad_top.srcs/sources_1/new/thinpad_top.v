@@ -120,8 +120,16 @@ openmips_min_sopc_wishbone sopc(
     .ext_ram_we_n(ext_ram_we_n),
     .ext_ram_ce_n(ext_ram_ce_n),
     
+    `ifdef USE_CPLD_UART
+    .uart_tbre(uart_tbre),
+    .uart_tsre(uart_tsre),
+    .uart_data_ready(uart_dataready),
+    .uart_rdn(uart_rdn),
+    .uart_wrn(uart_wrn),
+    `else
     .uart_rxd(rxd),
     .uart_txd(txd),
+    `endif
     
     .pc_o(pc),
     .inst_o(inst)

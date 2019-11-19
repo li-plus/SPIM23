@@ -20,9 +20,17 @@ module openmips_min_sopc_wishbone(
     output wire ext_ram_oe_n,
     output wire ext_ram_we_n,
     
+`ifdef USE_CPLD_UART
+    input wire uart_tbre,
+    input wire uart_tsre,
+    input wire uart_data_ready,
+    output wire uart_rdn,
+    output wire uart_wrn,
+`else
     // Uart
     input wire uart_rxd,
     output wire uart_txd,
+`endif
     
     output wire[`InstAddrBus] pc_o,
     output wire[`InstBus] inst_o
@@ -97,6 +105,11 @@ module openmips_min_sopc_wishbone(
  
  assign int = {timer_int, 2'b00, uart_int, 2'b00};
  
+ `ifdef USE_CPLD_UART
+ wire stall_base_ram;
+ wire idle_base_ram;
+ `endif
+ 
  openmips_wishbone openmips0(
     .clk(clk),
     .rst(rst),
@@ -120,6 +133,10 @@ module openmips_min_sopc_wishbone(
     .dwishbone_sel_o(m0_sel_i),
     .dwishbone_stb_o(m0_stb_i),
     .dwishbone_cyc_o(m0_cyc_i),
+    
+    `ifdef USE_CPLD_UART
+    .stallreq_from_uart(stall_base_ram),
+    `endif
 
     .timer_int_o(timer_int),
     .pc_o(pc_o),
@@ -143,7 +160,9 @@ sram_controller base_ram_ctrl(
     .wb_we_i(s0_we_o),
     .wb_cyc_i(s0_cyc_o),
     .wb_stb_i(s0_stb_o),
-    
+    `ifdef USE_CPLD_UART
+    .idle(idle_base_ram),
+    `endif
     .wb_dat_o(s0_data_i),
     .wb_ack_o(s0_ack_i),
     .SRAM_DQ(base_ram_data),
@@ -165,7 +184,6 @@ sram_controller ext_ram_ctrl(
     .wb_we_i(s1_we_o),
     .wb_cyc_i(s1_cyc_o),
     .wb_stb_i(s1_stb_o),
-    
     .wb_dat_o(s1_data_i),
     .wb_ack_o(s1_ack_i),
     .SRAM_DQ(ext_ram_data),
@@ -179,6 +197,31 @@ sram_controller ext_ram_ctrl(
 wire[31:0] uart_addr;
 wire[31:0] uart_data;
 
+`ifdef USE_CPLD_UART
+// 2 - CPLD Uart
+cpld_uart_controller uart_ctrl(
+    .wb_clk_i(clk),
+    .wb_rst_i(rst),
+    
+    .wb_adr_i(uart_addr),
+    .wb_dat_i(s2_data_o),
+    .wb_dat_o(uart_data),
+    .wb_we_i(s2_we_o),
+    .wb_stb_i(s2_stb_o), 
+    .wb_cyc_i(s2_cyc_o),
+    .wb_ack_o(s2_ack_i),
+    
+    .int_o(uart_int),
+    .data_bus(base_ram_data[7:0]),
+    .tbre_i(uart_tbre),
+    .tsre_i(uart_tsre),
+    .data_ready_i(uart_data_ready),
+    .wrn_o(uart_wrn),
+    .rdn_o(uart_rdn),
+    .stall_o(stall_base_ram),
+    .idle_i(idle_base_ram)
+);
+`else
 // 2 - Uart
 uart_top uart_ctrl(
     .wb_clk_i(clk),
@@ -201,6 +244,7 @@ uart_top uart_ctrl(
     .rts_pad_o(),  
     .dtr_pad_o()
 );
+`endif
 
 uart_wrapper uart_adapter(
     .uart_addr_i(s2_addr_o),
