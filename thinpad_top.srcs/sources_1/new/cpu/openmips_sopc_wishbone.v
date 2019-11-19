@@ -27,7 +27,8 @@ module openmips_min_sopc_wishbone(
     output wire[`InstAddrBus] pc_o,
     output wire[`InstBus] inst_o
     `ifdef DEBUG
-    ,output wire[`RegBus] r1_o
+    ,output wire[`RegBus] r1_o,
+    output wire uart_int_o
     `endif
 );
 
@@ -91,6 +92,8 @@ module openmips_min_sopc_wishbone(
 //	wire       s3_ack_i;	  
  
  wire uart_int;
+ 
+ assign uart_int_o = uart_int;
  
  assign int = {timer_int, 2'b00, uart_int, 2'b00};
  
