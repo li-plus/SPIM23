@@ -12,6 +12,8 @@ module sram_controller(
     // Outputs
     wb_dat_o,
     wb_ack_o,
+    
+    idle,
 
     // SRAM
     SRAM_DQ,   
@@ -56,6 +58,9 @@ wire wb_rd = wb_acc & ~wb_we_i & ~wb_rst_i; // read
 
 reg[1:0] state;
 reg[31:0] sram_out;
+
+output            idle;
+assign idle = state == `IDLE;
 
 assign SRAM_CE_N = ~wb_acc;
 assign SRAM_OE_N = ~wb_rd;

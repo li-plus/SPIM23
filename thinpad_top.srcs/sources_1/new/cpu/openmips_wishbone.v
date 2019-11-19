@@ -26,6 +26,10 @@ module openmips_wishbone(
     output wire dwishbone_cyc_o,
     
     output wire timer_int_o,
+    
+    `ifdef USE_CPLD_UART
+    input wire stallreq_from_uart,
+    `endif
   
     // for debug
     output wire[`InstAddrBus] pc_o,
@@ -565,6 +569,9 @@ ctrl ctrl0(
     .stallreq_from_id(stallreq_from_id),
     .stallreq_from_ex(stallreq_from_ex),
     .stallreq_from_mem(stallreq_from_mem),
+    `ifdef USE_CPLD_UART
+    .stallreq_from_uart(stallreq_from_uart),
+    `endif
     .new_pc(new_pc),
     .flush(flush),
     .stall(stall)
