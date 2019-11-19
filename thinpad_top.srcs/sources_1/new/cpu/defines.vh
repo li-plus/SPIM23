@@ -1,5 +1,6 @@
 `define DEBUG
-`define USE_CPLD_UART
+//`define USE_CPLD_UART
+// disable CPLD UART to avoid bus sharing
 
 `define True 1'b1
 `define False 1'b0
