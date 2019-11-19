@@ -15,6 +15,7 @@ module openmips_min_sopc_tb();
   initial begin
     rst = `RstEnable;
     #195 rst= `RstDisable;
+    #10000 rst = `RstEnable;
   end
   
   wire[31:0] base_ram_data;

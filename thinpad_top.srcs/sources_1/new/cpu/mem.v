@@ -1,7 +1,7 @@
 `include "defines.vh"
 
-module mem(input wire rst,
-
+module mem(
+           input wire rst,
            input wire[`RegAddrBus] wd_i,
            input wire wreg_i,
            input wire[`RegBus] wdata_i,
@@ -373,19 +373,12 @@ module mem(input wire rst,
                 excepttype_o <= `ZeroWord;
             
     			if(current_inst_address_i != `ZeroWord) begin
-    				if(((cp0_cause[15:8] & (cp0_status[15:8])) != 8'h00) && (cp0_status[1] == 1'b0) && 
-    							(cp0_status[0] == 1'b1))
-    					excepttype_o <= 32'h00000001;        //interrupt
-    				else if(excepttype_i[8] == 1'b1)
-    			  	        excepttype_o <= 32'h00000008;        //syscall
-    			    else if(excepttype_i[9] == 1'b1)
-    					excepttype_o <= 32'h0000000a;        //inst_invalid
-    			    else if(excepttype_i[10] ==1'b1)
-    					excepttype_o <= 32'h0000000d;        //trap
-    				else if(excepttype_i[11] == 1'b1)  
-    					excepttype_o <= 32'h0000000c;        // ov
-    				else if(excepttype_i[12] == 1'b1)
-    					excepttype_o <= 32'h0000000e;        // eret
+    				if(((cp0_cause[15:8] & cp0_status[15:8]) != 8'h00) && (cp0_status[1] == 1'b0) && (cp0_status[0] == 1'b1)) excepttype_o <= 32'h00000001;        //interrupt
+				else if(excepttype_i[8] == 1'b1) excepttype_o <= 32'h00000008;        //syscall
+				else if(excepttype_i[9] == 1'b1) excepttype_o <= 32'h0000000a;        //inst_invalid
+				else if(excepttype_i[10] ==1'b1) excepttype_o <= 32'h0000000d;        //trap
+				else if(excepttype_i[11] == 1'b1)  excepttype_o <= 32'h0000000c;        // ov
+				else if(excepttype_i[12] == 1'b1) excepttype_o <= 32'h0000000e;        // eret
     			end
              end
     end

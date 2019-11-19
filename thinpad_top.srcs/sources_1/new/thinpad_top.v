@@ -90,7 +90,7 @@ pll_example clock_gen
     .clk_out2(clk_20M),
 
     // Status and control signals
-    .reset(reset_btn),
+    .reset(`False),
     .locked(locked),
     // Clock in ports
     .clk_in1(clk_50M)
@@ -126,7 +126,8 @@ openmips_min_sopc_wishbone sopc(
     .pc_o(pc),
     .inst_o(inst)
     `ifdef DEBUG
-    ,.r1_o({number, 8'hzz, leds})
+    ,.r1_o({number, 8'hzz, leds[15:1], 1'hz}),
+    .uart_int_o(leds[0])
     `endif
 );
 

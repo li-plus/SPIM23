@@ -10,7 +10,7 @@ module cp0_reg(
     input wire[`RegBus] data_i,
     
     input wire[31:0] excepttype_i,
-//    input wire[31:0] bad_address_i,
+    input wire[31:0] bad_address_i,
     input wire[5:0] int_i,
     input wire[`RegBus] current_inst_addr_i,
     input wire is_in_delayslot_i,
@@ -43,6 +43,7 @@ always @(posedge clk) begin
         epc_o <= `ZeroWord;
         config_o <= 32'b00000000000000000000000000000000;
         timer_int_o <= `InterruptNotAssert;
+        ebase_o <= `EntryAddr;
         index_o <= `ZeroWord;
         random_o <= `ZeroWord;
         entrylo0_o <= `ZeroWord;
@@ -50,7 +51,6 @@ always @(posedge clk) begin
         pagemask_o <= `ZeroWord;
         badvaddr_o <= `ZeroWord;
         entryhi_o <= `ZeroWord;
-        ebase_o <= 32'b10000000000000000000000000000000;
     end else begin
         count_o <= count_o + 1;
         random_o <= random_o + 3;
@@ -129,7 +129,7 @@ always @(posedge clk) begin
 						end
 					end
 					status_o[1] <= 1'b1;
-					cause_o[6:2] <= 5'b01101;					
+					cause_o[6:2] <= 5'b01001;
 				end
 				32'h0000000c:		begin // overflow
 					if(status_o[1] == 1'b0) begin

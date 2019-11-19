@@ -57,31 +57,47 @@ module wishbone_bus_if(
 				end
 				`WB_BUSY:		begin
 					if(wishbone_ack_i == 1'b1) begin
-						wishbone_stb_o <= 1'b0;
-						wishbone_cyc_o <= 1'b0;
-						wishbone_addr_o <= `ZeroWord;
-						wishbone_data_o <= `ZeroWord;
-						wishbone_we_o <= `WriteDisable;
-						wishbone_sel_o <=  4'b0000;
-						wishbone_state <= `WB_IDLE;
-						if(cpu_we_i == `WriteDisable) rd_buf <= wishbone_data_i;
-						
-						if(stall_i != 6'b000000) wishbone_state <= `WB_WAIT_FOR_STALL;				
+					   if(flush_i == `False) begin
+					       wishbone_stb_o <= 1'b0;
+                           wishbone_cyc_o <= 1'b0;
+                           wishbone_addr_o <= `ZeroWord;
+                           wishbone_data_o <= `ZeroWord;
+                           wishbone_we_o <= `WriteDisable;
+                           wishbone_sel_o <=  4'b0000;
+                           wishbone_state <= `WB_IDLE;
+                           if(cpu_we_i == `WriteDisable) rd_buf <= wishbone_data_i;
+                           
+                           if(stall_i != 6'b000000) wishbone_state <= `WB_WAIT_FOR_STALL;
+					   end else begin
+                            wishbone_stb_o <= 1'b0;
+                            wishbone_cyc_o <= 1'b0;
+                            wishbone_addr_o <= `ZeroWord;
+                            wishbone_data_o <= `ZeroWord;
+                            wishbone_we_o <= `WriteDisable;
+                            wishbone_sel_o <=  4'b0000;
+                            wishbone_state <= `WB_IDLE;
+                            rd_buf <= `ZeroWord;
+					   end
 					end else if(flush_i == `True) begin
-					    wishbone_stb_o <= 1'b0;
-						wishbone_cyc_o <= 1'b0;
-						wishbone_addr_o <= `ZeroWord;
-						wishbone_data_o <= `ZeroWord;
-						wishbone_we_o <= `WriteDisable;
-						wishbone_sel_o <=  4'b0000;
-						wishbone_state <= `WB_IDLE;
-						rd_buf <= `ZeroWord;
+					   wishbone_state <= `WB_WAIT_FOR_FLUSHING;
+                       rd_buf <= `ZeroWord;
 					end
 				end
-				`WB_WAIT_FOR_STALL:		begin
-					if(stall_i == 6'b000000) wishbone_state <= `WB_IDLE;
+				`WB_WAIT_FOR_STALL: begin
+				    if(stall_i == 6'b000000) wishbone_state <= `WB_IDLE;
+                end
+				`WB_WAIT_FOR_FLUSHING: begin
+				    if(wishbone_ack_i == 1'b1) begin
+				        wishbone_stb_o <= 1'b0;
+                        wishbone_cyc_o <= 1'b0;
+                        wishbone_addr_o <= `ZeroWord;
+                        wishbone_data_o <= `ZeroWord;
+                        wishbone_we_o <= `WriteDisable;
+                        wishbone_sel_o <=  4'b0000;
+                        wishbone_state <= `WB_IDLE;
+                        rd_buf <= `ZeroWord;
+				    end
 				end
-				default: ;
 			endcase
 		end
 	end
@@ -114,7 +130,10 @@ module wishbone_bus_if(
 					stallreq <= `NoStop;
 					cpu_data_o <= rd_buf;
 				end
-				default: ;
+				`WB_WAIT_FOR_FLUSHING: begin
+				    stallreq <= `Stop;
+				    cpu_data_o <= `ZeroWord;
+				end
 			endcase
 		end
 	end
