@@ -1,5 +1,5 @@
 `define DEBUG
-//`define USE_CPLD_UART
+`define USE_CPLD_UART
 // disable CPLD UART to avoid bus sharing
 
 `define True 1'b1
@@ -261,11 +261,8 @@
 // Data RAM
 `define DataAddrBus 31:0
 `define DataBus 31:0
-//`define DataMemNum 131071
-//`define DataMemNumLog2 17
-// for simulation ONLY
-`define DataMemNum 128
-`define DataMemNumLog2 7
+`define DataMemNum 1048576
+`define DataMemNumLog2 20
 `define ByteWidth 7:0
 
 // Registers

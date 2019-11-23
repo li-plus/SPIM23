@@ -9,7 +9,7 @@ module openmips_min_sopc_tb();
        
   initial begin
     CLOCK_50 = 1'b0;
-    forever #10 CLOCK_50 = ~CLOCK_50;
+    forever #20 CLOCK_50 = ~CLOCK_50;
   end
       
   initial begin
@@ -25,6 +25,7 @@ module openmips_min_sopc_tb();
   wire[3:0] base_ram_be_n;
   wire base_ram_oe_n;
   wire base_ram_we_n;
+  wire base_ram_ce_n;
   
   wire[31:0] ext_ram_data;
   wire[31:0] ext_ram_addr;
@@ -33,21 +34,38 @@ module openmips_min_sopc_tb();
   wire ext_ram_we_n;
   wire ext_ram_oe_n;
   
-  inst_rom rom(
-    .ce(~base_ram_oe_n),
-    .addr(base_ram_addr),
-    .inst(base_ram_data)
-  );
+//  inst_rom rom(
+//    .ce(~base_ram_oe_n),
+//    .addr(base_ram_addr),
+//    .inst(base_ram_data)
+//  );
+
+    data_ram ram(
+        .clk(CLOCK_50),
+        .ce(~base_ram_ce_n),
+        .we(~base_ram_we_n),
+        .oe(~base_ram_oe_n),
+        .addr(base_ram_addr),
+        .sel(~base_ram_be_n),
+        .data(base_ram_data)
+    );
   
-  data_ram ram(
-    .clk(CLOCK_50),
-    .ce(~ext_ram_ce_n),
-    .we(~ext_ram_we_n),
-    .oe(~ext_ram_oe_n),
-    .addr(ext_ram_addr),
-    .sel(~ext_ram_be_n),
-    .data(ext_ram_data)
-  );
+  sram_model ext1(
+              .DataIO(ext_ram_data[15:0]),
+              .Address(ext_ram_addr[19:0]),
+              .OE_n(ext_ram_oe_n),
+              .CE_n(ext_ram_ce_n),
+              .WE_n(ext_ram_we_n),
+              .LB_n(ext_ram_be_n[0]),
+              .UB_n(ext_ram_be_n[1]));
+  sram_model ext2(
+              .DataIO(ext_ram_data[31:16]),
+              .Address(ext_ram_addr[19:0]),
+              .OE_n(ext_ram_oe_n),
+              .CE_n(ext_ram_ce_n),
+              .WE_n(ext_ram_we_n),
+              .LB_n(ext_ram_be_n[2]),
+              .UB_n(ext_ram_be_n[3]));
   
   `ifdef USE_CPLD_UART
   wire uart_rdn;
@@ -85,6 +103,7 @@ module openmips_min_sopc_tb();
       .base_ram_be_n(base_ram_be_n),
       .base_ram_oe_n(base_ram_oe_n),
       .base_ram_we_n(base_ram_we_n),
+      .base_ram_ce_n(base_ram_ce_n),
       
       .ext_ram_data(ext_ram_data),
       .ext_ram_addr(ext_ram_addr),
