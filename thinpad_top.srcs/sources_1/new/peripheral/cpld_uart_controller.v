@@ -58,12 +58,14 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
                     stall_o <= `True;  // send stall request
                     state <= 3'h1;
                 end else if(wb_adr_i[2:0] == 3'h5 && wb_acc) begin
-                    wb_ack_o <= `True;
+                    wb_ack_o <= `True;  // read status register, return at once
                 end
             end 
             3'h1: begin
                 bus_enable <= `False;
                 // wait for base ram to be stalled
+                rdn_o <= 1'b1;
+                wrn_o <= 1'b1;
                 if(idle_i == `True) begin
                     bus_enable <= `True;
                     if(wb_wr) begin
@@ -87,13 +89,18 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
             // write states
             3'h3: begin
                 wrn_o <= 1'b0;
-                state <= 3'h4;
+                state <= 3'h5;
             end
-            3'h4: begin
+            3'h5: begin
                 wrn_o <= 1'b1;
                 stall_o <= `False;
                 bus_enable <= `False;
-                if(tbre_i == 1'b1 && tsre_i == 1'b1) begin
+                if(tbre_i == 1'b1) begin
+                    state <= 3'h6;
+                end
+            end
+            3'h6: begin
+                if(tsre_i == 1'b1) begin
                     state <= 3'h7;
                     wb_ack_o <= `True;
                 end

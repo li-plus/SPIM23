@@ -90,7 +90,7 @@ pll_example clock_gen
     .clk_out2(clk_main),
 
     // Status and control signals
-    .reset(`False),
+    .reset(reset_btn),
     .locked(locked),
     // Clock in ports
     .clk_in1(clk_50M)
@@ -104,7 +104,7 @@ SEG7_LUT segH(.oSEG1(dpy1), .iDIG(number[7:4]));
 
 openmips_min_sopc_wishbone sopc(
     .clk(clk_main),
-    .rst(reset_btn),
+    .rst(~locked),
     
     .base_ram_data(base_ram_data),
     .base_ram_addr(base_ram_addr),
