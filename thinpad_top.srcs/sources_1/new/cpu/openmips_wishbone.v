@@ -670,7 +670,7 @@ wishbone_bus_if dwishbone_bus_if(
 );
 
 // instruction wishbone
-wishbone_bus_if iwishbone_bus_if(
+wishbone_bus_if #(.INST_BUS(`True)) iwishbone_bus_if(
     .clk(clk),
     .rst(rst),
     

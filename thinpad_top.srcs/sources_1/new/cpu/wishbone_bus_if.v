@@ -5,7 +5,7 @@ module wishbone_bus_if(
 	input wire rst,
 	
 	input wire[5:0] stall_i,
-	input flush_i,
+	input wire flush_i,
 	
 	//CPU
 	input wire cpu_ce_i,
@@ -30,12 +30,14 @@ module wishbone_bus_if(
 
   reg[1:0] wishbone_state;
   reg[`RegBus] rd_buf;
+  
+  reg self_stall = `False;
+
+  parameter INST_BUS = `False;
 
 	always @ (posedge clk) begin
 		if(rst == `RstEnable) begin
             wishbone_state <= `WB_IDLE;
-			wishbone_addr_o <= `ZeroWord;
-			wishbone_data_o <= `ZeroWord;
 			wishbone_we_o <= `WriteDisable;
 			wishbone_sel_o <= 4'b0000;
 			wishbone_stb_o <= 1'b0;
@@ -47,32 +49,45 @@ module wishbone_bus_if(
 					if(cpu_ce_i == `True && flush_i == `False) begin
 						wishbone_stb_o <= 1'b1;
 						wishbone_cyc_o <= 1'b1;
-						wishbone_addr_o <= cpu_addr_i;
-						wishbone_data_o <= cpu_data_i;
-						wishbone_we_o <= cpu_we_i;
-						wishbone_sel_o <=  cpu_sel_i;
+						wishbone_we_o <= INST_BUS ? `False : cpu_we_i;
+						wishbone_sel_o <=  INST_BUS ? 4'b1111: cpu_sel_i;
 						wishbone_state <= `WB_BUSY;
-						rd_buf <= `ZeroWord;		
+						rd_buf <= `ZeroWord;	
 					end							
 				end
 				`WB_BUSY:		begin
 					if(wishbone_ack_i == 1'b1) begin
 					   if(flush_i == `False) begin
-					       wishbone_stb_o <= 1'b0;
-                           wishbone_cyc_o <= 1'b0;
-                           wishbone_addr_o <= `ZeroWord;
-                           wishbone_data_o <= `ZeroWord;
-                           wishbone_we_o <= `WriteDisable;
-                           wishbone_sel_o <=  4'b0000;
-                           wishbone_state <= `WB_IDLE;
-                           if(cpu_we_i == `WriteDisable) rd_buf <= wishbone_data_i;
-                           
-                           if(stall_i != 6'b000000) wishbone_state <= `WB_WAIT_FOR_STALL;
+					       if(!INST_BUS) begin
+						   		// databus does not support burst
+								wishbone_stb_o <= 1'b0;
+								wishbone_cyc_o <= 1'b0;
+								wishbone_we_o <= `WriteDisable;
+								wishbone_sel_o <=  4'b0000;
+								wishbone_state <= `WB_IDLE;
+								if(cpu_we_i == `WriteDisable) rd_buf <= wishbone_data_i;
+								
+								if(stall_i != 6'b000000) wishbone_state <= `WB_WAIT_FOR_STALL;
+						   end else begin
+						   		// inst bus, burst read
+								wishbone_stb_o <= 1'b1;
+								wishbone_cyc_o <= 1'b1;
+								wishbone_we_o <= `WriteDisable;
+								wishbone_sel_o <= 4'b1111;
+								wishbone_state <= `WB_BUSY;
+								rd_buf <= wishbone_data_i;
+
+								if(stall_i != 6'b000000) begin
+									wishbone_state <= `WB_WAIT_FOR_STALL;
+									wishbone_stb_o <= 1'b0;
+									wishbone_cyc_o <= 1'b0;
+									wishbone_we_o <= `WriteDisable;
+									wishbone_sel_o <=  4'b0000;
+								end
+						   end
 					   end else begin
                             wishbone_stb_o <= 1'b0;
                             wishbone_cyc_o <= 1'b0;
-                            wishbone_addr_o <= `ZeroWord;
-                            wishbone_data_o <= `ZeroWord;
                             wishbone_we_o <= `WriteDisable;
                             wishbone_sel_o <=  4'b0000;
                             wishbone_state <= `WB_IDLE;
@@ -84,14 +99,23 @@ module wishbone_bus_if(
 					end
 				end
 				`WB_WAIT_FOR_STALL: begin
-				    if(stall_i == 6'b000000) wishbone_state <= `WB_IDLE;
+				    if(stall_i == 6'b000000 || self_stall) begin
+				        if(cpu_ce_i == `True && flush_i == `False) begin
+                            wishbone_stb_o <= 1'b1;
+                            wishbone_cyc_o <= 1'b1;
+                            wishbone_we_o <= INST_BUS ? `False : cpu_we_i;
+                            wishbone_sel_o <=  INST_BUS ? 4'b1111: cpu_sel_i;
+                            wishbone_state <= `WB_BUSY;
+                            rd_buf <= `ZeroWord;    
+                        end else begin
+                            wishbone_state <= `IDLE;
+                        end
+				    end
                 end
 				`WB_WAIT_FOR_FLUSHING: begin
 				    if(wishbone_ack_i == 1'b1) begin
 				        wishbone_stb_o <= 1'b0;
                         wishbone_cyc_o <= 1'b0;
-                        wishbone_addr_o <= `ZeroWord;
-                        wishbone_data_o <= `ZeroWord;
                         wishbone_we_o <= `WriteDisable;
                         wishbone_sel_o <=  4'b0000;
                         wishbone_state <= `WB_IDLE;
@@ -107,31 +131,51 @@ module wishbone_bus_if(
 		if(rst == `RstEnable) begin
 			stallreq <= `NoStop;
 			cpu_data_o <= `ZeroWord;
+            wishbone_addr_o <= `ZeroWord;
+            wishbone_data_o <= `ZeroWord;
+            self_stall <= `False;
 		end else begin
 			stallreq <= `NoStop;
+			if(cpu_ce_i == `True && flush_i == `False) begin
+                wishbone_addr_o <= cpu_addr_i;
+                wishbone_data_o <= cpu_data_i;
+			end else begin
+                wishbone_addr_o <= `ZeroWord;
+                wishbone_data_o <= `ZeroWord;
+			end
 			case (wishbone_state)
 				`WB_IDLE:		begin
 					if(cpu_ce_i == `True && flush_i == `False) begin
 						stallreq <= `Stop;
+						self_stall <= `True;
 						cpu_data_o <= `ZeroWord;				
 					end
 				end
 				`WB_BUSY:		begin
 					if(wishbone_ack_i == 1'b1) begin
 						stallreq <= `NoStop;
+						self_stall <= `False;
 						if(wishbone_we_o == `WriteDisable) cpu_data_o <= wishbone_data_i;
                         else cpu_data_o <= `ZeroWord;						
 					end else begin
-						stallreq <= `Stop;	
+						stallreq <= `Stop;
+						self_stall <= `True;
 						cpu_data_o <= `ZeroWord;				
 					end
 				end
 				`WB_WAIT_FOR_STALL:		begin
-					stallreq <= `NoStop;
 					cpu_data_o <= rd_buf;
+                    if(cpu_ce_i == `True && flush_i == `False) begin
+                        stallreq <= `Stop;
+                        self_stall <= `True;
+                    end else begin
+                        stallreq <= `NoStop;
+                        self_stall <= `False;
+                    end
 				end
 				`WB_WAIT_FOR_FLUSHING: begin
 				    stallreq <= `Stop;
+				    self_stall <= `False;
 				    cpu_data_o <= `ZeroWord;
 				end
 			endcase

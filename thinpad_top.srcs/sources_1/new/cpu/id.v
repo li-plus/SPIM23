@@ -332,6 +332,26 @@ module id(input wire rst,
                         end
                         default: ;
                     endcase
+                    if (inst_i[25:21] == 11'b00000000000) begin
+                        if (funct == `EXE_SLL) begin
+                            wreg_o    <= `WriteEnable; aluop_o    <= `ALU_SLL_OP;
+                            alusel_o  <= `ALU_SEL_SHIFT; reg1_read_o  <= 1'b0;    reg2_read_o  <= 1'b1;
+                            imm[4:0]  <= inst_i[10:6]; wd_o  <= rd;
+                            instvalid <= `InstValid;
+                        end
+                        else if (funct == `EXE_SRL) begin
+                            wreg_o    <= `WriteEnable; aluop_o    <= `ALU_SRL_OP;
+                            alusel_o  <= `ALU_SEL_SHIFT; reg1_read_o  <= 1'b0;    reg2_read_o  <= 1'b1;
+                            imm[4:0]  <= inst_i[10:6]; wd_o  <= rd;
+                            instvalid <= `InstValid;
+                        end
+                        else if (funct == `EXE_SRA) begin
+                            wreg_o    <= `WriteEnable; aluop_o    <= `ALU_SRA_OP;
+                            alusel_o  <= `ALU_SEL_SHIFT; reg1_read_o  <= 1'b0;    reg2_read_o  <= 1'b1;
+                            imm[4:0]  <= inst_i[10:6]; wd_o  <= rd;
+                            instvalid <= `InstValid;
+                        end
+                    end
                 end
                 `EXE_ORI: begin
                     wreg_o    <= `WriteEnable; aluop_o    <= `ALU_OR_OP;
@@ -670,27 +690,6 @@ module id(input wire rst,
                 end
                 default: ;
             endcase //case op_code
-            
-            if (inst_i[31:21] == 11'b00000000000) begin
-                if (funct == `EXE_SLL) begin
-                    wreg_o    <= `WriteEnable; aluop_o    <= `ALU_SLL_OP;
-                    alusel_o  <= `ALU_SEL_SHIFT; reg1_read_o  <= 1'b0;	reg2_read_o  <= 1'b1;
-                    imm[4:0]  <= inst_i[10:6]; wd_o  <= rd;
-                    instvalid <= `InstValid;
-                end
-                else if (funct == `EXE_SRL) begin
-                    wreg_o    <= `WriteEnable; aluop_o    <= `ALU_SRL_OP;
-                    alusel_o  <= `ALU_SEL_SHIFT; reg1_read_o  <= 1'b0;	reg2_read_o  <= 1'b1;
-                    imm[4:0]  <= inst_i[10:6]; wd_o  <= rd;
-                    instvalid <= `InstValid;
-                end
-                else if (funct == `EXE_SRA) begin
-                    wreg_o    <= `WriteEnable; aluop_o    <= `ALU_SRA_OP;
-                    alusel_o  <= `ALU_SEL_SHIFT; reg1_read_o  <= 1'b0;	reg2_read_o  <= 1'b1;
-                    imm[4:0]  <= inst_i[10:6]; wd_o  <= rd;
-                    instvalid <= `InstValid;
-                end
-            end
             
             if(inst_i == `EXE_ERET) begin
                 wreg_o <= `WriteDisable; aluop_o <= `ALU_ERET_OP; alusel_o <= `ALU_SEL_NOP;

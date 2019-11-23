@@ -132,6 +132,10 @@
 // in 32bit-bus mode, the wb_sel_i signal is used to put data in correct place
 // also, in 8-bit version there'll be no debugging features included
 // CAUTION: doesn't work with current version of OR1200
+//`define LATCH_LOW_INITIAL 8'h00c3 // 30MHz, 9600 baud
+`define LATCH_LOW_INITIAL 8'h0010; // 30MHz, 115200 baud
+//`define LATCH_LOW_INITIAL 8'h0104 // 40MHz, 9600 baud
+
 `define DATA_BUS_WIDTH_8
 
 `ifdef DATA_BUS_WIDTH_8

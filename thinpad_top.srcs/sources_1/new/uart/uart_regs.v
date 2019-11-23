@@ -229,7 +229,6 @@
 `define UART_DL2 15:8
 
 `define IER_INITIAL 4'b0001  // enable receive interrupt by default
-`define LATCH_LOW_INITIAL 8'h0082 // 20MHz, 9600 baud
 
 module uart_regs (clk,
 	wb_rst_i, wb_addr_i, wb_dat_i, wb_dat_o, wb_we_i, wb_re_i, 
