@@ -47,14 +47,15 @@ wire uart_tbre;          //发送数据标志
 wire uart_tsre;          //数据发送完毕标志
 
 ////Windows需要注意路径分隔符的转义，例如"D:\\foo\\bar.bin"
-//parameter BASE_RAM_INIT_FILE = "/tmp/main.bin"; //BaseRAM初始化文件，请修改为实际的绝对路径
-//parameter EXT_RAM_INIT_FILE = "/tmp/eram.bin";    //ExtRAM初始化文件，请修改为实际的绝对路径
-//parameter FLASH_INIT_FILE = "/tmp/kernel.elf";    //Flash初始化文件，请修改为实际的绝对路径
+parameter BASE_RAM_INIT_FILE = "E:\\program\\cpu\\pic\\pic.bin"; //BaseRAM初始化文件，请修改为实际的绝对路径
+parameter EXT_RAM_INIT_FILE = "/tmp/eram.bin";    //ExtRAM初始化文件，请修改为实际的绝对路径
+parameter FLASH_INIT_FILE = "/tmp/kernel.elf";    //Flash初始化文件，请修改为实际的绝对路径
 
 assign rxd = 1'b1; //idle state
-assign base_ram_ce_n = 1'b1;
-assign base_ram_oe_n = 1'b1;
-assign base_ram_we_n = 1'b1;
+assign txd = 1'b1;
+assign ext_ram_ce_n = 1'b1;
+assign ext_ram_oe_n = 1'b1;
+assign ext_ram_we_n = 1'b1;
 
 
 reg cpu_rst;
@@ -66,7 +67,7 @@ initial begin
     #1000 $stop; 
 end
 
-//// 待测试用户设计
+//// user design
 //thinpad_top dut(
 //    .clk_50M(clk_50M),
 //    .clk_11M0592(clk_11M0592),
@@ -105,12 +106,12 @@ end
 //    .flash_byte_n(flash_byte_n),
 //    .flash_we_n(flash_we_n)
 //);
-// 时钟源
+// clock
 clock osc(
     .clk_11M0592(clk_11M0592),
     .clk_50M    (clk_50M)
 );
-// CPLD 串口仿真模型
+// CPLD serial port model
 cpld_model cpld(
     .clk_uart(clk_11M0592),
     .uart_rdn(uart_rdn),
@@ -120,104 +121,188 @@ cpld_model cpld(
     .uart_tsre(uart_tsre),
     .data(base_ram_data[7:0])
 );
-//// BaseRAM 仿真模型
-//sram_model base1(/*autoinst*/
-//            .DataIO(base_ram_data[15:0]),
-//            .Address(base_ram_addr[19:0]),
-//            .OE_n(base_ram_oe_n),
-//            .CE_n(base_ram_ce_n),
-//            .WE_n(base_ram_we_n),
-//            .LB_n(base_ram_be_n[0]),
-//            .UB_n(base_ram_be_n[1]));
-//sram_model base2(/*autoinst*/
-//            .DataIO(base_ram_data[31:16]),
-//            .Address(base_ram_addr[19:0]),
-//            .OE_n(base_ram_oe_n),
-//            .CE_n(base_ram_ce_n),
-//            .WE_n(base_ram_we_n),
-//            .LB_n(base_ram_be_n[2]),
-//            .UB_n(base_ram_be_n[3]));
-//// ExtRAM 仿真模型
-//sram_model ext1(/*autoinst*/
-//            .DataIO(ext_ram_data[15:0]),
-//            .Address(ext_ram_addr[19:0]),
-//            .OE_n(ext_ram_oe_n),
-//            .CE_n(ext_ram_ce_n),
-//            .WE_n(ext_ram_we_n),
-//            .LB_n(ext_ram_be_n[0]),
-//            .UB_n(ext_ram_be_n[1]));
-//sram_model ext2(/*autoinst*/
-//            .DataIO(ext_ram_data[31:16]),
-//            .Address(ext_ram_addr[19:0]),
-//            .OE_n(ext_ram_oe_n),
-//            .CE_n(ext_ram_ce_n),
-//            .WE_n(ext_ram_we_n),
-//            .LB_n(ext_ram_be_n[2]),
-//            .UB_n(ext_ram_be_n[3]));
-//// Flash 仿真模型
-//x28fxxxp30 #(.FILENAME_MEM(FLASH_INIT_FILE)) flash(
-//    .A(flash_a[1+:22]), 
-//    .DQ(flash_d), 
-//    .W_N(flash_we_n),    // Write Enable 
-//    .G_N(flash_oe_n),    // Output Enable
-//    .E_N(flash_ce_n),    // Chip Enable
-//    .L_N(1'b0),    // Latch Enable
-//    .K(1'b0),      // Clock
-//    .WP_N(flash_vpen),   // Write Protect
-//    .RP_N(flash_rp_n),   // Reset/Power-Down
-//    .VDD('d3300), 
-//    .VDDQ('d3300), 
-//    .VPP('d1800), 
-//    .Info(1'b1));
+// BaseRAM model
+sram_model base1(/*autoinst*/
+           .DataIO(base_ram_data[15:0]),
+           .Address(base_ram_addr[19:0]),
+           .OE_n(base_ram_oe_n),
+           .CE_n(base_ram_ce_n),
+           .WE_n(base_ram_we_n),
+           .LB_n(base_ram_be_n[0]),
+           .UB_n(base_ram_be_n[1]));
+sram_model base2(/*autoinst*/
+           .DataIO(base_ram_data[31:16]),
+           .Address(base_ram_addr[19:0]),
+           .OE_n(base_ram_oe_n),
+           .CE_n(base_ram_ce_n),
+           .WE_n(base_ram_we_n),
+           .LB_n(base_ram_be_n[2]),
+           .UB_n(base_ram_be_n[3]));
+// ExtRAM model
+sram_model ext1(/*autoinst*/
+           .DataIO(ext_ram_data[15:0]),
+           .Address(ext_ram_addr[19:0]),
+           .OE_n(ext_ram_oe_n),
+           .CE_n(ext_ram_ce_n),
+           .WE_n(ext_ram_we_n),
+           .LB_n(ext_ram_be_n[0]),
+           .UB_n(ext_ram_be_n[1]));
+sram_model ext2(/*autoinst*/
+           .DataIO(ext_ram_data[31:16]),
+           .Address(ext_ram_addr[19:0]),
+           .OE_n(ext_ram_oe_n),
+           .CE_n(ext_ram_ce_n),
+           .WE_n(ext_ram_we_n),
+           .LB_n(ext_ram_be_n[2]),
+           .UB_n(ext_ram_be_n[3]));
+// Flash model
+x28fxxxp30 #(.FILENAME_MEM(FLASH_INIT_FILE)) flash(
+   .A(flash_a[1+:22]), 
+   .DQ(flash_d), 
+   .W_N(flash_we_n),    // Write Enable 
+   .G_N(flash_oe_n),    // Output Enable
+   .E_N(flash_ce_n),    // Chip Enable
+   .L_N(1'b0),    // Latch Enable
+   .K(1'b0),      // Clock
+   .WP_N(flash_vpen),   // Write Protect
+   .RP_N(flash_rp_n),   // Reset/Power-Down
+   .VDD('d3300), 
+   .VDDQ('d3300), 
+   .VPP('d1800), 
+   .Info(1'b1));
 
-//initial begin 
-//    wait(flash_byte_n == 1'b0);
-//    $display("8-bit Flash interface is not supported in simulation!");
-//    $display("Please tie flash_byte_n to high");
-//    $stop;
-//end
 
-//// 从文件加载 BaseRAM
-//initial begin 
-//    reg [31:0] tmp_array[0:1048575];
-//    integer n_File_ID, n_Init_Size;
-//    n_File_ID = $fopen(BASE_RAM_INIT_FILE, "rb");
-//    if(!n_File_ID)begin 
-//        n_Init_Size = 0;
-//        $display("Failed to open BaseRAM init file");
-//    end else begin
-//        n_Init_Size = $fread(tmp_array, n_File_ID);
-//        n_Init_Size /= 4;
-//        $fclose(n_File_ID);
-//    end
-//    $display("BaseRAM Init Size(words): %d",n_Init_Size);
-//    for (integer i = 0; i < n_Init_Size; i++) begin
-//        base1.mem_array0[i] = tmp_array[i][24+:8];
-//        base1.mem_array1[i] = tmp_array[i][16+:8];
-//        base2.mem_array0[i] = tmp_array[i][8+:8];
-//        base2.mem_array1[i] = tmp_array[i][0+:8];
-//    end
-//end
 
-//// 从文件加载 ExtRAM
-//initial begin 
-//    reg [31:0] tmp_array[0:1048575];
-//    integer n_File_ID, n_Init_Size;
-//    n_File_ID = $fopen(EXT_RAM_INIT_FILE, "rb");
-//    if(!n_File_ID)begin 
-//        n_Init_Size = 0;
-//        $display("Failed to open ExtRAM init file");
-//    end else begin
-//        n_Init_Size = $fread(tmp_array, n_File_ID);
-//        n_Init_Size /= 4;
-//        $fclose(n_File_ID);
-//    end
-//    $display("ExtRAM Init Size(words): %d",n_Init_Size);
-//    for (integer i = 0; i < n_Init_Size; i++) begin
-//        ext1.mem_array0[i] = tmp_array[i][24+:8];
-//        ext1.mem_array1[i] = tmp_array[i][16+:8];
-//        ext2.mem_array0[i] = tmp_array[i][8+:8];
-//        ext2.mem_array1[i] = tmp_array[i][0+:8];
-//    end
-//end
+
+
+
+// vga demo
+assign uart_rdn = 1;
+assign uart_wrn = 1;
+
+wire[7:0] video_pixel;
+assign video_red = video_pixel[2:0];
+assign video_green = video_pixel[5:3];
+assign video_blue = video_pixel[7:6];
+assign video_clk = clk_50M;
+wire[18:0] gaddr_r;
+
+wire gram_ce;
+reg gram_we = 1'b1;
+assign gram_ce = 1'b1;
+
+reg[19:0] addr = 20'b0;
+assign base_ram_addr = addr;
+reg oe, ce, we;
+assign base_ram_ce_n = ce;
+assign base_ram_oe_n = oe;
+assign base_ram_we_n = we;
+assign base_ram_data = 32'hzzzzzzzz;
+assign base_ram_be_n = 4'b0000;
+
+reg[31:0] data_in;
+reg[1:0] state = 2'h0;
+
+always @ (posedge clk_50M) begin
+    oe <= 0;
+    ce <= 0;
+    we <= 1;
+    case (state)
+        2'h0: begin
+            state <= 2'h1;
+            data_in <= base_ram_data;
+        end
+        2'h1: begin
+            state <= 2'h0;
+            if (addr < 120000) begin
+                addr <= addr + 1;
+            end else begin 
+                addr <= 0;
+            end
+        end
+    endcase
+end
+
+wire[11:0] hdata;
+wire[11:0] vdata;
+
+graphic_ram gram(
+    // write ports
+    .addra(addr),
+    .clka(clk_50M), 
+    .dina(data_in),
+    .ena(gram_ce), 
+    .wea(gram_we), 
+    // read ports
+    .addrb(gaddr_r), 
+    .clkb(clk_50M), 
+    .doutb(video_pixel), 
+    .enb(gram_ce) 
+);
+
+vga #(12, 800, 856, 976, 1040, 600, 637, 643, 666, 1, 1) vga800x600at75 (
+    .clk(clk_50M), 
+    .hdata(hdata),
+    .vdata(vdata),
+    .hsync(video_hsync),
+    .vsync(video_vsync),
+    .data_enable(video_de),
+    .addr(gaddr_r)
+);
+
+
+
+
+
+
+initial begin 
+   wait(flash_byte_n == 1'b0);
+   $display("8-bit Flash interface is not supported in simulation!");
+   $display("Please tie flash_byte_n to high");
+   $stop;
+end
+
+// load BaseRAM from file
+initial begin 
+   reg [31:0] tmp_array[0:1048575];
+   integer n_File_ID, n_Init_Size;
+   n_File_ID = $fopen(BASE_RAM_INIT_FILE, "rb");
+   if(!n_File_ID)begin 
+       n_Init_Size = 0;
+       $display("Failed to open BaseRAM init file");
+   end else begin
+       n_Init_Size = $fread(tmp_array, n_File_ID);
+       n_Init_Size /= 4;
+       $fclose(n_File_ID);
+   end
+   $display("BaseRAM Init Size(words): %d",n_Init_Size);
+   for (integer i = 0; i < n_Init_Size; i++) begin
+       base1.mem_array0[i] = tmp_array[i][24+:8];
+       base1.mem_array1[i] = tmp_array[i][16+:8];
+       base2.mem_array0[i] = tmp_array[i][8+:8];
+       base2.mem_array1[i] = tmp_array[i][0+:8];
+   end
+end
+
+// load ExtRAM from file
+initial begin 
+   reg [31:0] tmp_array[0:1048575];
+   integer n_File_ID, n_Init_Size;
+   n_File_ID = $fopen(EXT_RAM_INIT_FILE, "rb");
+   if(!n_File_ID)begin 
+       n_Init_Size = 0;
+       $display("Failed to open ExtRAM init file");
+   end else begin
+       n_Init_Size = $fread(tmp_array, n_File_ID);
+       n_Init_Size /= 4;
+       $fclose(n_File_ID);
+   end
+   $display("ExtRAM Init Size(words): %d",n_Init_Size);
+   for (integer i = 0; i < n_Init_Size; i++) begin
+       ext1.mem_array0[i] = tmp_array[i][24+:8];
+       ext1.mem_array1[i] = tmp_array[i][16+:8];
+       ext2.mem_array0[i] = tmp_array[i][8+:8];
+       ext2.mem_array1[i] = tmp_array[i][0+:8];
+   end
+end
 endmodule

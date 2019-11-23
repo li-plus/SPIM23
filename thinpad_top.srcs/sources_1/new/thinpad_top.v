@@ -80,6 +80,7 @@ module thinpad_top(
     output wire video_de           // horizontal valid
 );
 
+/*
 wire clk_10M, clk_20M;
 wire locked;
 
@@ -138,6 +139,80 @@ openmips_min_sopc_wishbone sopc(
     .uart_int_o(leds[0])
     `endif
 );
+*/
 
+// vga demo
+assign uart_rdn = 1;
+assign uart_wrn = 1;
+
+wire[7:0] video_pixel;
+assign video_red = video_pixel[2:0];
+assign video_green = video_pixel[5:3];
+assign video_blue = video_pixel[7:6];
+assign video_clk = clk_50M;
+wire[18:0] gaddr_r;
+
+wire gram_ce;
+reg gram_we = 1'b1;
+assign gram_ce = 1'b1;
+
+reg[19:0] addr = 20'b0;
+assign base_ram_addr = addr;
+reg oe, ce, we;
+assign base_ram_ce_n = ce;
+assign base_ram_oe_n = oe;
+assign base_ram_we_n = we;
+assign base_ram_data = 32'hzzzzzzzz;
+assign base_ram_be_n = 4'b0000;
+
+reg[31:0] data_in;
+reg[1:0] state = 2'h0;
+
+always @ (posedge clk_50M) begin
+    oe <= 0;
+    ce <= 0;
+    we <= 1;
+    case (state)
+        2'h0: begin
+            state <= 2'h1;
+            data_in <= base_ram_data;
+        end
+        2'h1: begin
+            state <= 2'h0;
+            if (addr < 120000) begin
+                addr <= addr + 1;
+            end else begin 
+                addr <= 0;
+            end
+        end
+    endcase
+end
+
+wire[11:0] hdata;
+wire[11:0] vdata;
+
+graphic_ram gram(
+    // write ports
+    .addra(addr),
+    .clka(clk_50M), 
+    .dina(data_in),
+    .ena(gram_ce), 
+    .wea(gram_we), 
+    // read ports
+    .addrb(gaddr_r), 
+    .clkb(clk_50M), 
+    .doutb(video_pixel), 
+    .enb(gram_ce) 
+);
+
+vga #(12, 800, 856, 976, 1040, 600, 637, 643, 666, 1, 1) vga800x600at75 (
+    .clk(clk_50M), 
+    .hdata(hdata),
+    .vdata(vdata),
+    .hsync(video_hsync),
+    .vsync(video_vsync),
+    .data_enable(video_de),
+    .addr(gaddr_r)
+);
 
 endmodule
