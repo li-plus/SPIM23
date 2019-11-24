@@ -223,7 +223,7 @@ cpld_uart_controller uart_ctrl(
 );
 `else
 // 2 - Uart
-uart_top uart_ctrl(
+uart_controller uart_ctrl(
     .wb_clk_i(clk),
     .wb_rst_i(rst),
     .wb_adr_i(uart_addr),
@@ -233,16 +233,10 @@ uart_top uart_ctrl(
     .wb_stb_i(s2_stb_o), 
     .wb_cyc_i(s2_cyc_o),
     .wb_ack_o(s2_ack_i),
-    .wb_sel_i(s2_sel_o),
     .int_o(uart_int),
-    .stx_pad_o(uart_txd),
-    .srx_pad_i(uart_rxd),
-    .cts_pad_i(1'b0),
-    .dsr_pad_i(1'b0), 
-    .ri_pad_i(1'b0), 
-    .dcd_pad_i(1'b0),
-    .rts_pad_o(),  
-    .dtr_pad_o()
+    
+    .uart_rxd(uart_rxd),
+    .uart_txd(uart_txd)
 );
 `endif
 

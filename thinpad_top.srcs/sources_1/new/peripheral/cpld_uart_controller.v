@@ -3,7 +3,7 @@ module cpld_uart_controller(
     input wire wb_rst_i,
 
     input wire[31:0] wb_dat_i,
-    output wire[31:0] wb_adr_i,
+    input wire[31:0] wb_adr_i,
     input wire wb_we_i,
     input wire wb_cyc_i,
     input wire wb_stb_i,

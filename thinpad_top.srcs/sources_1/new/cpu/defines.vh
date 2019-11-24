@@ -1,6 +1,9 @@
 `define DEBUG
-`define USE_CPLD_UART
+//`define USE_CPLD_UART
 // disable CPLD UART to avoid bus sharing
+`define CLK_FREQ 50000000
+`define UART_BAUD 115200
+// configuration for directly connected UART
 
 `define True 1'b1
 `define False 1'b0
