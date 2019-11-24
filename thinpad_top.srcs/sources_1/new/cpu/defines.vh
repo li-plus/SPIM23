@@ -264,8 +264,8 @@
 //`define DataMemNum 131071
 //`define DataMemNumLog2 17
 // for simulation ONLY
-`define DataMemNum 128
-`define DataMemNumLog2 7
+`define DataMemNum 1048576
+`define DataMemNumLog2 20
 `define ByteWidth 7:0
 
 // Registers

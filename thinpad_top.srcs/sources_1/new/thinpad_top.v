@@ -1,4 +1,5 @@
 `default_nettype none
+`include "defines.vh"
 
 module thinpad_top(
     input wire clk_50M,           //50MHz
@@ -80,7 +81,10 @@ module thinpad_top(
     output wire video_de           // horizontal valid
 );
 
-/*
+wire[18:0] gram_addr_o;
+wire[31:0] gram_data_o;
+wire gram_we_n;
+
 wire clk_10M, clk_20M;
 wire locked;
 
@@ -132,6 +136,10 @@ openmips_min_sopc_wishbone sopc(
     .uart_txd(txd),
     `endif
     
+    .gram_data_o(gram_data_o),
+    .gram_addr_o(gram_addr_o),
+    .gram_we_n(gram_we_n),
+
     .pc_o(pc),
     .inst_o(inst)
     `ifdef DEBUG
@@ -139,9 +147,10 @@ openmips_min_sopc_wishbone sopc(
     .uart_int_o(leds[0])
     `endif
 );
-*/
+
 
 // vga demo
+/*
 assign uart_rdn = 1;
 assign uart_wrn = 1;
 
@@ -203,7 +212,16 @@ graphic_ram gram(
     .clkb(clk_50M), 
     .doutb(video_pixel), 
     .enb(gram_ce) 
-);
+);*/
+
+wire[18:0] gram_addr_i;
+wire[7:0] gram_data_i;
+assign video_red = gram_data_i[2:0];
+assign video_green = gram_data_i[5:3];
+assign video_blue = gram_data_i[7:6];
+
+wire[11:0] hdata;
+wire[11:0] vdata;
 
 vga #(12, 800, 856, 976, 1040, 600, 637, 643, 666, 1, 1) vga800x600at75 (
     .clk(clk_50M), 
@@ -212,7 +230,21 @@ vga #(12, 800, 856, 976, 1040, 600, 637, 643, 666, 1, 1) vga800x600at75 (
     .hsync(video_hsync),
     .vsync(video_vsync),
     .data_enable(video_de),
-    .addr(gaddr_r)
+    .addr(gram_addr_i)
+);
+
+graphic_ram gram(
+    // write ports
+    .addra(gram_addr_o),
+    .clka(clk_20M),
+    .dina(gram_data_o),
+    .ena(1'b1),
+    .wea(!gram_we_n), 
+    // read ports
+    .addrb(gram_addr_i), 
+    .clkb(clk_50M), 
+    .doutb(gram_data_i), 
+    .enb(1'b1) 
 );
 
 endmodule

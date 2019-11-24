@@ -32,6 +32,11 @@ module openmips_min_sopc_wishbone(
     output wire uart_txd,
 `endif
     
+    // VGA
+    output wire[31:0] gram_data_o,
+	output wire[18:0] gram_addr_o,
+	output wire gram_we_n,
+
     output wire[`InstAddrBus] pc_o,
     output wire[`InstBus] inst_o
     `ifdef DEBUG
@@ -90,14 +95,14 @@ module openmips_min_sopc_wishbone(
 	wire       s2_stb_o;
 	wire       s2_ack_i;
 	
-//	wire[31:0] s3_data_i;
-//	wire[31:0] s3_data_o;
-//	wire[31:0] s3_addr_o;
-//	wire[3:0]  s3_sel_o;
-//	wire       s3_we_o; 
-//	wire       s3_cyc_o; 
-//	wire       s3_stb_o;
-//	wire       s3_ack_i;	  
+	wire[31:0] s3_data_i;
+	wire[31:0] s3_data_o;
+	wire[31:0] s3_addr_o;
+	wire[3:0]  s3_sel_o;
+	wire       s3_we_o; 
+	wire       s3_cyc_o; 
+	wire       s3_stb_o;
+	wire       s3_ack_i;
  
  wire uart_int;
  
@@ -253,6 +258,30 @@ uart_wrapper uart_adapter(
     .uart_data_o(s2_data_i) // Uart data -> CPU data
 );
 
+// VGA
+gram_controller gram_controller1(
+    // clk signals
+    .wb_clk_i(clk),
+    .wb_rst_i(rst),
+
+    // WB slave if
+    .wb_dat_i(s3_data_o),
+    .wb_dat_o(s3_data_i),
+    .wb_adr_i(s3_addr_o),
+	.wb_sel_i(s3_sel_o),
+    .wb_we_i(s3_we_o),
+    .wb_cyc_i(s3_cyc_o),
+	.wb_stb_i(s3_stb_o),
+	.wb_ack_o(s3_ack_i),
+
+    // GRAM if
+    .GRAM_DATA(gram_data_o),
+    .GRAM_ADDR(gram_addr_o),
+    .GRAM_WE_N(gram_we_n),
+
+    .idle()
+);
+
 // Wishbone InterConn Matrix
 
 wb_conmax_top wb_conmax_top0(
@@ -388,14 +417,14 @@ wb_conmax_top wb_conmax_top0(
 	    .s2_rty_i(1'b0),
 
 	    // Slave 3 Interface
-	    .s3_data_i(),
-	    .s3_data_o(),
-	    .s3_addr_o(),
-	    .s3_sel_o(),
-	    .s3_we_o(), 
-	    .s3_cyc_o(), 
-	    .s3_stb_o(),
-	    .s3_ack_i(1'b0),
+	    .s3_data_i(s3_data_i),
+	    .s3_data_o(s3_data_o),
+	    .s3_addr_o(s3_addr_o),
+	    .s3_sel_o(s3_sel_o),
+	    .s3_we_o(s3_we_o), 
+	    .s3_cyc_o(s3_cyc_o), 
+	    .s3_stb_o(s3_stb_o),
+	    .s3_ack_i(s3_ack_i),
 	    .s3_err_i(1'b0), 
 	    .s3_rty_i(1'b0),
 

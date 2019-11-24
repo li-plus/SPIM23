@@ -26,6 +26,11 @@ always@(*) begin
                 else
                     addr_o <= `ZeroWord;
             end
+            8'hba: begin
+                if(addr_i[23:17] == 7'b0000000) begin
+                    addr_o <= {12'h300, addr_i[19:0]}; // graphic ram
+                end
+            end
             default: addr_o <= `ZeroWord;
         endcase
     end
