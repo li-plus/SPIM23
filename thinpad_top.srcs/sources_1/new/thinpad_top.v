@@ -85,14 +85,14 @@ wire[18:0] gram_addr_o;
 wire[31:0] gram_data_o;
 wire gram_we_n;
 
-wire clk_10M, clk_20M;
+wire clk_20M, clk_main;
 wire locked;
 
 pll_example clock_gen 
 (
     // Clock out ports
-    .clk_out1(clk_10M),
-    .clk_out2(clk_20M),
+    .clk_out1(clk_20M),
+    .clk_out2(clk_main),
 
     // Status and control signals
     .reset(`False),
@@ -108,7 +108,7 @@ SEG7_LUT segL(.oSEG1(dpy0), .iDIG(number[3:0]));
 SEG7_LUT segH(.oSEG1(dpy1), .iDIG(number[7:4]));
 
 openmips_min_sopc_wishbone sopc(
-    .clk(clk_20M),
+    .clk(clk_main),
     .rst(reset_btn),
     
     .base_ram_data(base_ram_data),

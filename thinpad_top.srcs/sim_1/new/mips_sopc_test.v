@@ -8,13 +8,8 @@ module openmips_min_sopc_tb();
   reg     rst;
   
   initial begin
-    clk_20M = 1'b0;
-    forever #25 clk_20M = ~clk_20M;
-  end   
-
-  initial begin
     clk_50M = 1'b0;
-    forever #10 clk_50M = ~clk_50M;
+    forever #20 clk_50M = ~clk_50M;
   end
       
   initial begin
@@ -51,42 +46,38 @@ module openmips_min_sopc_tb();
   wire[31:0] gram_data_o;
   wire gram_we_n;
 
-  // BaseRAM Model
-  // inst_rom rom(
-  //   .ce(~base_ram_oe_n),
-  //   .addr(base_ram_addr),
-  //   .inst(base_ram_data)
-  // );
-  data_ram ram(
-    .clk(clk_50M),
-    .ce(~base_ram_ce_n),
-    .we(~base_ram_we_n),
-    .oe(~base_ram_oe_n),
-    .addr(base_ram_addr),
-    .sel(~base_ram_be_n),
-    .data(base_ram_data)
-  );
+//  inst_rom rom(
+//    .ce(~base_ram_oe_n),
+//    .addr(base_ram_addr),
+//    .inst(base_ram_data)
+//  );
 
-  // ExtRAM model
-  sram_model ext1(/*autoinst*/
-            .DataIO(ext_ram_data[15:0]),
-            .Address(ext_ram_addr[19:0]),
-            .OE_n(ext_ram_oe_n),
-            .CE_n(ext_ram_ce_n),
-            .WE_n(ext_ram_we_n),
-            .LB_n(ext_ram_be_n[0]),
-            .UB_n(ext_ram_be_n[1]));
-  sram_model ext2(/*autoinst*/
-            .DataIO(ext_ram_data[31:16]),
-            .Address(ext_ram_addr[19:0]),
-            .OE_n(ext_ram_oe_n),
-            .CE_n(ext_ram_ce_n),
-            .WE_n(ext_ram_we_n),
-            .LB_n(ext_ram_be_n[2]),
-            .UB_n(ext_ram_be_n[3]));
-
+    data_ram ram(
+        .clk(clk_50M),
+        .ce(~base_ram_ce_n),
+        .we(~base_ram_we_n),
+        .oe(~base_ram_oe_n),
+        .addr(base_ram_addr),
+        .sel(~base_ram_be_n),
+        .data(base_ram_data)
+    );
   
-
+  sram_model ext1(
+              .DataIO(ext_ram_data[15:0]),
+              .Address(ext_ram_addr[19:0]),
+              .OE_n(ext_ram_oe_n),
+              .CE_n(ext_ram_ce_n),
+              .WE_n(ext_ram_we_n),
+              .LB_n(ext_ram_be_n[0]),
+              .UB_n(ext_ram_be_n[1]));
+  sram_model ext2(
+              .DataIO(ext_ram_data[31:16]),
+              .Address(ext_ram_addr[19:0]),
+              .OE_n(ext_ram_oe_n),
+              .CE_n(ext_ram_ce_n),
+              .WE_n(ext_ram_we_n),
+              .LB_n(ext_ram_be_n[2]),
+              .UB_n(ext_ram_be_n[3]));
   
   `ifdef USE_CPLD_UART
   wire uart_rdn;

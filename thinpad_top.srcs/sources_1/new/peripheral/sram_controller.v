@@ -57,7 +57,6 @@ wire wb_wr = wb_acc & wb_we_i & ~wb_rst_i; // write
 wire wb_rd = wb_acc & ~wb_we_i & ~wb_rst_i; // read
 
 reg[1:0] state;
-reg[31:0] sram_out;
 
 output            idle;
 assign idle = state == `IDLE;
@@ -70,35 +69,66 @@ assign SRAM_ADDR = wb_adr_i[21:2];
 
 assign SRAM_DQ = wb_wr ? wb_dat_i : 32'hzzzzzzzz;
 
-assign wb_dat_o = sram_out;
+assign wb_dat_o = wb_rd ? SRAM_DQ : 32'h00000000;
+
+
+/**
+   Duty Cycle
+   
+   Read (Experimental):
+   
+   Clk: __|---|___|---|___
+   Data:______valid_______
+   Addr __valid__
+   OE:  __|-------|_______
+   ACK: ______|---|_______
+   
+   Note that ACK is just a notification telling the bus that `data is ready, please update your record when next posedge comes`
+   
+   Write:
+   
+   Two-cycle pattern
+**/
+
+always @(negedge wb_clk_i) begin
+    if(!wb_rst_i) begin
+        case(state)
+            `IDLE: begin
+                if(wb_rd) wb_ack_o <= `True;
+            end
+        endcase
+    end
+end
 
 always @(posedge wb_clk_i or posedge wb_rst_i) begin
     if(wb_rst_i) begin
         state <= `IDLE;
-        sram_out <= 32'h00000000;
         wb_ack_o <= `False;
         end
     else begin
         case(state)
             `IDLE: begin
-                if(wb_wr) 
+                if(wb_wr) begin
                     state <= `WE0;
-                else if(wb_rd)
-                    state <= `RD0;
+                    wb_ack_o <= `True;
+                end
+                else if(wb_rd) begin
+                    state <= `IDLE;
+                    wb_ack_o <= `False;  // Experimental: allow read in one cycle
+                end
             end
             `WE0: begin
-                state <= `OK;
-                wb_ack_o <= `True;
-            end
-            `RD0: begin
-                state <= `OK;
-                wb_ack_o <= `True;
-                sram_out <= SRAM_DQ;
-            end
-            `OK: begin
                 state <= `IDLE;
                 wb_ack_o <= `False;
             end
+            `RD0: begin
+                state <= `IDLE;
+                wb_ack_o <= `False;
+            end
+//            `OK: begin
+//                state <= `IDLE;
+//                wb_ack_o <= `False;
+//            end
             default: state <= `IDLE;
         endcase
     end

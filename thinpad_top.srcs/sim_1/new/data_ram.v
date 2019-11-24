@@ -16,7 +16,7 @@ module data_ram(input wire clk,
     reg[`InstBus] inst_mem[0: `DataMemNum - 1];
     integer i = 0;
     initial begin
-        $readmemh ("E:\\program\\cpu\\kernel.mem", inst_mem);
+        $readmemh ("E:\\program\\cpu\\inst_rom.data", inst_mem);
         for(i = 0; i < `DataMemNum; i = i + 1) begin
             data_mem3[i] <= inst_mem[i][31:24];
             data_mem2[i] <= inst_mem[i][23:16];
