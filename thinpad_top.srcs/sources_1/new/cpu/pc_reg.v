@@ -4,24 +4,37 @@ module pc_reg(
               input wire clk,
               input wire rst,
               input wire[5:0] stall,
-              // for exception handling
               input wire flush,
               input wire[`RegBus] new_pc,
               // for branching
               input wire branch_flag_i,
               input wire[`RegBus] branch_target_address_i,
               output reg[`InstAddrBus] pc,
-              output reg ce
+              input wire tlb_hit,
+              input wire[`InstAddrBus] physical_pc,
+              output reg[`InstAddrBus] virtual_pc,
+              output reg ce,
+              output reg[31:0] excepttype_o
 );
+
+always @ (*) begin
+    if(tlb_hit == `True) begin
+        pc <= physical_pc;
+        excepttype_o <= `ZeroWord;
+    end else begin
+        pc <= `ZeroWord;
+        excepttype_o <= {18'b0, `True, 13'b0};
+    end
+end
 
 always @ (posedge clk) begin
     if (ce == `ChipDisable)
-        pc <= `EntryAddr;
+        virtual_pc <= `EntryAddr;
     else if(flush == `True)
-        pc <= new_pc;
+        virtual_pc <= new_pc;
     else if (stall[0] == `NoStop) begin
-        if (branch_flag_i == `Branch) pc <= branch_target_address_i;
-		else pc <= pc + 4'h4;
+        if (branch_flag_i == `Branch) virtual_pc <= branch_target_address_i;
+		else virtual_pc <= virtual_pc + 4'h4;
     end
 end
 

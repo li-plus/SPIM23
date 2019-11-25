@@ -31,7 +31,9 @@ module mem_wb(input	wire clk,
               
               output reg wb_cp0_reg_we,
               output reg[4:0] wb_cp0_reg_waddr,
-              output reg[`RegBus] wb_cp0_reg_data
+              output reg[`RegBus] wb_cp0_reg_data,
+              input wire[`RegBus] mem_inst,
+              output reg[`RegBus] wb_inst
 );
     
     
@@ -48,6 +50,7 @@ module mem_wb(input	wire clk,
             wb_cp0_reg_we <= `WriteDisable;
             wb_cp0_reg_waddr <= 5'b00000;
             wb_cp0_reg_data <= `ZeroWord;
+            wb_inst <= `ZeroWord;
             end 
         else if (stall[4] == `Stop && stall[5] == `NoStop) begin
             wb_wd    <= `NOPRegAddr;
@@ -61,6 +64,7 @@ module mem_wb(input	wire clk,
             wb_cp0_reg_we <= `WriteDisable;
             wb_cp0_reg_waddr <= 5'b00000;
             wb_cp0_reg_data <= `ZeroWord;
+            wb_inst <= `ZeroWord;
             end 
         else if (stall[4] == `NoStop) begin
             wb_wd    <= mem_wd;
@@ -74,6 +78,7 @@ module mem_wb(input	wire clk,
             wb_cp0_reg_we <= mem_cp0_reg_we;
             wb_cp0_reg_waddr <= mem_cp0_reg_waddr;
             wb_cp0_reg_data <= mem_cp0_reg_data;
+            wb_inst <= mem_inst;
         end
     end
     

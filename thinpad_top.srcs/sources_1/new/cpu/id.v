@@ -17,6 +17,7 @@ module id(input wire rst,
           input wire[`RegBus] reg2_data_i,
           
           input wire is_in_delayslot_i,
+          input wire[31:0] excepttype_i,
           
           output reg reg1_read_o,
           output reg reg2_read_o,
@@ -88,7 +89,8 @@ module id(input wire rst,
     (ex_aluop_i == `ALU_SC_OP)) ? `True : `False;
     
     assign inst_o = inst_i;
-    assign excepttype_o = {19'b0, excepttype_is_eret, 2'b0, instvalid, excepttype_is_syscall, 8'b0};
+    // Pass exceptions occured in if on
+    assign excepttype_o = {excepttype_i[31:13], excepttype_is_eret, excepttype_i[11:10], instvalid, excepttype_is_syscall, excepttype_i[7:0]};
     assign current_inst_address_o = pc_i;
     
     always @ (*) begin
@@ -662,6 +664,27 @@ module id(input wire rst,
                     endcase //EXE_SPECIAL_INST2 case
                 end
                 `EXE_COP0_INST: begin
+                    if(inst_i[25:6] == 20'b1_00000000_00000000_000) begin
+                        case(funct)
+                            `EXE_ERET: begin
+                                wreg_o <= `WriteDisable; aluop_o <= `ALU_ERET_OP; alusel_o <= `ALU_SEL_NOP;
+                                reg1_read_o <= `ReadDisable; reg2_read_o <= `ReadDisable; instvalid <= `InstValid;
+                                excepttype_is_eret <= `True;
+                            end
+                            `EXE_TLBWI: begin
+                                instvalid <= `InstValid;
+                            end
+                            `EXE_TLBWR: begin
+                                instvalid <= `InstValid;
+                            end
+                            `EXE_TLBP: begin
+                                instvalid <= `InstValid;
+                            end
+                            `EXE_TLBR: begin
+                                instvalid <= `InstValid;
+                            end
+                        endcase
+                    end
                     case(rs)
                         `EXE_CP0_MF: begin
                             if(inst_i[10:3] == 8'b00000000) begin
@@ -690,14 +713,8 @@ module id(input wire rst,
                 end
                 default: ;
             endcase //case op_code
-            
-            if(inst_i == `EXE_ERET) begin
-                wreg_o <= `WriteDisable; aluop_o <= `ALU_ERET_OP; alusel_o <= `ALU_SEL_NOP;
-                reg1_read_o <= `ReadDisable; reg2_read_o <= `ReadDisable; instvalid <= `InstValid;
-                excepttype_is_eret <= `True;
-            end       
-	end //if
-end //always
+	end
+end
                     
                     
 always @ (*) begin

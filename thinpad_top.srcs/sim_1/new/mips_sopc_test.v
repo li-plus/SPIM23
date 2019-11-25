@@ -49,23 +49,33 @@ module openmips_min_sopc_tb();
         .sel(~base_ram_be_n),
         .data(base_ram_data)
     );
+    
+    data_ram ext_ram(
+        .clk(CLOCK_50),
+        .ce(~ext_ram_ce_n),
+        .we(~ext_ram_we_n),
+        .oe(~ext_ram_oe_n),
+        .addr(ext_ram_addr),
+        .sel(~ext_ram_be_n),
+        .data(ext_ram_data)
+    );
   
-  sram_model ext1(
-              .DataIO(ext_ram_data[15:0]),
-              .Address(ext_ram_addr[19:0]),
-              .OE_n(ext_ram_oe_n),
-              .CE_n(ext_ram_ce_n),
-              .WE_n(ext_ram_we_n),
-              .LB_n(ext_ram_be_n[0]),
-              .UB_n(ext_ram_be_n[1]));
-  sram_model ext2(
-              .DataIO(ext_ram_data[31:16]),
-              .Address(ext_ram_addr[19:0]),
-              .OE_n(ext_ram_oe_n),
-              .CE_n(ext_ram_ce_n),
-              .WE_n(ext_ram_we_n),
-              .LB_n(ext_ram_be_n[2]),
-              .UB_n(ext_ram_be_n[3]));
+//  sram_model ext1(
+//              .DataIO(ext_ram_data[15:0]),
+//              .Address(ext_ram_addr[19:0]),
+//              .OE_n(ext_ram_oe_n),
+//              .CE_n(ext_ram_ce_n),
+//              .WE_n(ext_ram_we_n),
+//              .LB_n(ext_ram_be_n[0]),
+//              .UB_n(ext_ram_be_n[1]));
+//  sram_model ext2(
+//              .DataIO(ext_ram_data[31:16]),
+//              .Address(ext_ram_addr[19:0]),
+//              .OE_n(ext_ram_oe_n),
+//              .CE_n(ext_ram_ce_n),
+//              .WE_n(ext_ram_we_n),
+//              .LB_n(ext_ram_be_n[2]),
+//              .UB_n(ext_ram_be_n[3]));
   
   `ifdef USE_CPLD_UART
   wire uart_rdn;

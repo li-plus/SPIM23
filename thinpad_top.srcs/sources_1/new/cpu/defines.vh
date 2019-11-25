@@ -1,7 +1,7 @@
 `define DEBUG
 //`define USE_CPLD_UART
 // disable CPLD UART to avoid bus sharing
-`define CLK_FREQ 50000000
+`define CLK_FREQ 45000000
 `define UART_BAUD 115200
 // configuration for directly connected UART
 
@@ -142,7 +142,12 @@
 `define EXE_TNE 6'b110110
 `define EXE_TNEI 5'b01110
    
-`define EXE_ERET 32'b01000010000000000000000000011000
+`define EXE_ERET    6'b011000
+`define EXE_TLBWI   6'b000010
+`define EXE_TLBWR   6'b000110
+`define EXE_TLBP    6'b001000
+`define EXE_TLBR    6'b000001
+`define EXE_TLB_PREFIX 26'b010000_1_000_00000000_00000000
 
 // ALU ops
 `define ALU_AND_OP   8'b00100100
@@ -310,3 +315,28 @@
 `define WB_BUSY 2'b01
 `define WB_WAIT_FOR_FLUSHING 2'b10
 `define WB_WAIT_FOR_STALL 2'b11
+
+// Interruption and Exception codes
+`define EXCEPT_INT          32'h00000001
+`define EXCEPT_MOD          32'h00000002
+`define EXCEPT_ADEL         32'h00000004
+`define EXCEPT_ADES         32'h00000005
+`define EXCEPT_SYSCALL      32'h00000008
+`define EXCEPT_INVALID_INST 32'h0000000a
+`define EXCEPT_OVERFLOW     32'h0000000c
+`define EXCEPT_TRAP         32'h0000000d
+`define EXCEPT_ERET         32'h0000000e
+`define EXCEPT_TLBL         32'h0000000f
+`define EXCEPT_TLBS         32'h0000000b
+
+
+`define CAUSE_INT           5'h00
+`define CAUSE_MOD           5'h01
+`define CAUSE_TLBL          5'h02
+`define CAUSE_TLBS          5'h03
+`define CAUSE_ADEL          5'h04
+`define CAUSE_ADES          5'h05
+`define CAUSE_SYS           5'h08
+`define CAUSE_RI            5'h0a
+`define CAUSE_OV            5'h0c
+`define CAUSE_TR            5'h0d

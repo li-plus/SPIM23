@@ -31,6 +31,8 @@ module ex(input wire rst,
           
           input wire[`RegBus] link_address_i,
           input wire is_in_delayslot_i,
+	  
+          output wire[`RegBus] inst_o,
           
           output reg[`RegAddrBus] wd_o,
           output reg wreg_o,
@@ -52,7 +54,7 @@ module ex(input wire rst,
           output wire[`RegBus] mem_addr_o,
           output wire[`RegBus] reg2_o,
 	  
-	  output wire[31:0] excepttype_o,
+          output wire[31:0] excepttype_o,
           output wire is_in_delayslot_o,
           output wire[`RegBus] current_inst_address_o,
 
@@ -71,8 +73,37 @@ module ex(input wire rst,
           output reg[4:0] cp0_reg_raddr_o,
           output reg cp0_reg_we_o,
           output reg[4:0] cp0_reg_waddr_o,
-          output reg[`RegBus] cp0_reg_data_o
+          output reg[`RegBus] cp0_reg_data_o,
+
+          // read after write hazard of TLBP, TLBR
+          input wire[`RegBus] mmu_inst_i,
+          input wire[`RegBus] mmu_pagemask_i,
+          input wire[`RegBus] mmu_entryhi_i,
+          input wire[`RegBus] mmu_entrylo0_i,
+          input wire[`RegBus] mmu_entrylo1_i,
+          input wire[`RegBus] mmu_index_i
 );
+
+    wire[`RegBus]   wb_cp0_reg_data_fwd, mem_cp0_reg_data_fwd;
+    wire wb_cp0_need_fwd, mem_cp0_need_fwd;
+    
+    cp0_forwarder cp0_forwarder_mem(
+        .cp0_reg_addr_i(mem_cp0_reg_waddr),
+        .read_addr_i(inst_i[15:11]),
+        .old_cp0_reg_data_i(cp0_reg_data_i),
+        .cp0_reg_data_i(mem_cp0_reg_data),
+        .cp0_reg_data_o(mem_cp0_reg_data_fwd),
+        .need_forward(mem_cp0_need_fwd)
+    );
+
+    cp0_forwarder cp0_forwarder_wb(
+        .cp0_reg_addr_i(wb_cp0_reg_waddr),
+        .read_addr_i(inst_i[15:11]),
+        .old_cp0_reg_data_i(cp0_reg_data_i),
+        .cp0_reg_data_i(wb_cp0_reg_data),
+        .cp0_reg_data_o(wb_cp0_reg_data_fwd),
+        .need_forward(wb_cp0_need_fwd)
+    );
     
     reg[`RegBus] logicres;
     reg[`RegBus] shiftres;
@@ -101,8 +132,9 @@ module ex(input wire rst,
     assign mem_addr_o = reg1_i + {{16{inst_i[15]}},inst_i[15:0]};
     
     assign reg2_o = reg2_i;
+    assign inst_o = inst_i;
 
-    assign excepttype_o = {excepttype_i[31:12], ov_assert, trap_assert, excepttype_i[9:8], 8'h0};
+    assign excepttype_o = {excepttype_i[31:12], ov_assert, trap_assert, excepttype_i[9:8], 8'h00};
 
     assign is_in_delayslot_o = is_in_delayslot_i;
     assign current_inst_address_o = current_inst_address_i;
@@ -364,9 +396,11 @@ module ex(input wire rst,
     always @ (*) begin
         if (rst == `RstEnable) begin
             moveres <= `ZeroWord;
+            cp0_reg_raddr_o <= 5'h00;
         end
         else begin
             moveres <= `ZeroWord;
+            cp0_reg_raddr_o <= 5'h00;
             case (aluop_i)
                 `ALU_MFHI_OP: moveres <= HI;
                 `ALU_MFLO_OP: moveres <= LO;
@@ -376,10 +410,28 @@ module ex(input wire rst,
                     cp0_reg_raddr_o <= inst_i[15:11];
                     moveres <= cp0_reg_data_i;
                     // RAW data conflict
-                    if(mem_cp0_reg_we == `WriteEnable && mem_cp0_reg_waddr == inst_i[15:11])
-                        moveres <= mem_cp0_reg_data;
-                    else if (wb_cp0_reg_we == `WriteEnable && wb_cp0_reg_waddr == inst_i[15:11])
-                        moveres <= wb_cp0_reg_data;
+                    if(mem_cp0_reg_we == `WriteEnable && mem_cp0_need_fwd)
+                        moveres <= mem_cp0_reg_data_fwd;
+                    else if (wb_cp0_reg_we == `WriteEnable && wb_cp0_need_fwd)
+                        moveres <= wb_cp0_reg_data_fwd;
+                    else if (mmu_inst_i[31:6] == `EXE_TLB_PREFIX) begin
+                        case(mmu_inst_i[5:0])
+                            `EXE_TLBP: begin
+                                if(inst_i[15:11] == `CP0_REG_INDEX)
+                                    moveres <= mmu_index_i;
+                            end
+                            `EXE_TLBR: begin
+                                if(inst_i[15:11] == `CP0_REG_PAGEMASK)
+                                    moveres <= mmu_pagemask_i;
+                                else if(inst_i[15:11] == `CP0_REG_ENTRYHI)
+                                    moveres <= mmu_entryhi_i;
+                                else if(inst_i[15:11] == `CP0_REG_ENTRYLO0)
+                                    moveres <= mmu_entrylo0_i;
+                                else if(inst_i[15:11] == `CP0_REG_ENTRYLO1)
+                                    moveres <= mmu_entrylo1_i;
+                            end
+                        endcase
+                    end
                 end
                 default: ;
             endcase

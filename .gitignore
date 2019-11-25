@@ -89,3 +89,5 @@ thinpad_top.sim/
 !*.elf
 !*.bmm
 !*.xmp
+thinpad_top.hw/hw_1/hw.xml
+thinpad_top.hw/webtalk/usage_statistics_ext_labtool.xml
