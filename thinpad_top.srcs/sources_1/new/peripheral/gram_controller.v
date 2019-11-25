@@ -17,8 +17,9 @@ module gram_controller(
 
     // GRAM if
     input[31:0]     GRAM_DATA,
-    output[19:0]    GRAM_ADDR,
+    output[16:0]    GRAM_ADDR,
     output            GRAM_WE_N,
+    output      GRAM_CE_N,
 
     output            idle
 );
@@ -34,34 +35,32 @@ wire wb_wr = wb_acc & wb_we_i & ~wb_rst_i; // write
 wire wb_rd = wb_acc & ~wb_we_i & ~wb_rst_i; // read
 
 reg[1:0] state;
-reg[31:0] gram_out;
-
+// reg[31:0] gram_out;
 
 assign idle = state == `IDLE;
 
+assign GRAM_CE_N = ~wb_acc;
 assign GRAM_WE_N = ~wb_wr;
-assign GRAM_ADDR = wb_adr_i[21:2];
+assign GRAM_ADDR = wb_adr_i[18:2];
 
 assign GRAM_DATA = wb_wr ? wb_dat_i : 32'hzzzzzzzz;
 
-assign wb_dat_o = gram_out;
+// assign wb_dat_o = gram_out;
 
 always @(posedge wb_clk_i or posedge wb_rst_i) begin
     if(wb_rst_i) begin
         state <= `IDLE;
-        gram_out <= 32'h00000000;
+        // gram_out <= 32'hdeadbeef;
         wb_ack_o <= `False;
     end else begin
         case(state)
             `IDLE: begin
-                if(wb_wr) 
+                if(wb_wr) begin
                     state <= `WE0;
+                    wb_ack_o <= `True;
+                end
             end
             `WE0: begin
-                state <= `OK;
-                wb_ack_o <= `True;
-            end
-            `OK: begin
                 state <= `IDLE;
                 wb_ack_o <= `False;
             end

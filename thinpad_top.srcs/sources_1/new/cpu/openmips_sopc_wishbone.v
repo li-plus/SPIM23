@@ -34,7 +34,7 @@ module openmips_min_sopc_wishbone(
     
     // VGA
     output wire[31:0] gram_data_o,
-	output wire[18:0] gram_addr_o,
+	output wire[16:0] gram_addr_o,
 	output wire gram_we_n,
 
     output wire[`InstAddrBus] pc_o,
@@ -278,6 +278,7 @@ gram_controller gram_controller1(
     .GRAM_DATA(gram_data_o),
     .GRAM_ADDR(gram_addr_o),
     .GRAM_WE_N(gram_we_n),
+	.GRAM_CE_N(gram_ce_n),
 
     .idle()
 );

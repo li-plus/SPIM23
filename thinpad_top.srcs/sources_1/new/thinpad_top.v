@@ -81,17 +81,18 @@ module thinpad_top(
     output wire video_de           // horizontal valid
 );
 
-wire[18:0] gram_addr_o;
+wire[16:0] gram_addr_o;
 wire[31:0] gram_data_o;
 wire gram_we_n;
+wire gram_ce_n;
 
-wire clk_20M, clk_main;
+wire clk_60M, clk_main;
 wire locked;
 
 pll_example clock_gen 
 (
     // Clock out ports
-    .clk_out1(clk_20M),
+    .clk_out1(clk_60M),
     .clk_out2(clk_main),
 
     // Status and control signals
@@ -214,17 +215,18 @@ graphic_ram gram(
     .enb(gram_ce) 
 );*/
 
+wire[11:0] hdata;
+wire[11:0] vdata;
+
 wire[18:0] gram_addr_i;
 wire[7:0] gram_data_i;
 assign video_red = gram_data_i[2:0];
 assign video_green = gram_data_i[5:3];
 assign video_blue = gram_data_i[7:6];
-
-wire[11:0] hdata;
-wire[11:0] vdata;
+assign video_clk = clk_main;
 
 vga #(12, 800, 856, 976, 1040, 600, 637, 643, 666, 1, 1) vga800x600at75 (
-    .clk(clk_50M), 
+    .clk(clk_main), 
     .hdata(hdata),
     .vdata(vdata),
     .hsync(video_hsync),
@@ -236,13 +238,13 @@ vga #(12, 800, 856, 976, 1040, 600, 637, 643, 666, 1, 1) vga800x600at75 (
 graphic_ram gram(
     // write ports
     .addra(gram_addr_o),
-    .clka(clk_20M),
+    .clka(clk_main),
     .dina(gram_data_o),
     .ena(1'b1),
-    .wea(!gram_we_n), 
+    .wea(~gram_we_n),
     // read ports
     .addrb(gram_addr_i), 
-    .clkb(clk_50M), 
+    .clkb(clk_main), 
     .doutb(gram_data_i), 
     .enb(1'b1) 
 );
