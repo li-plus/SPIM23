@@ -27,8 +27,8 @@ always@(*) begin
                     addr_o <= `ZeroWord;
             end
             8'hba: begin
-                if(addr_i[23:17] == 7'b0000000) begin
-                    addr_o <= {12'h300, 3'b000, addr_i[16:0]}; // graphic ram
+                if(addr_i[23:19] == 5'b00000) begin
+                    addr_o <= {12'h300, 1'b0, addr_i[18:0]}; // graphic ram
                 end
             end
             default: addr_o <= `ZeroWord;

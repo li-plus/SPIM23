@@ -81,8 +81,8 @@ module thinpad_top(
     output wire video_de           // horizontal valid
 );
 
-wire[16:0] gram_addr_o;
-wire[31:0] gram_data_o;
+wire[18:0] gram_addr_o;
+wire[7:0] gram_data_o;
 wire gram_we_n;
 wire gram_ce_n;
 

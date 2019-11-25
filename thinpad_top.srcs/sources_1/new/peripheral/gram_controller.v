@@ -16,8 +16,8 @@ module gram_controller(
     output reg        wb_ack_o,
 
     // GRAM if
-    input[31:0]     GRAM_DATA,
-    output[16:0]    GRAM_ADDR,
+    output[7:0]     GRAM_DATA,
+    output[18:0]    GRAM_ADDR,
     output            GRAM_WE_N,
     output      GRAM_CE_N,
 
@@ -41,9 +41,8 @@ assign idle = state == `IDLE;
 
 assign GRAM_CE_N = ~wb_acc;
 assign GRAM_WE_N = ~wb_wr;
-assign GRAM_ADDR = wb_adr_i[18:2];
-
-assign GRAM_DATA = wb_wr ? wb_dat_i : 32'hzzzzzzzz;
+assign GRAM_ADDR = wb_adr_i[18:0];
+assign GRAM_DATA = wb_wr ? wb_dat_i[7:0] : 8'hzz;
 
 // assign wb_dat_o = gram_out;
 

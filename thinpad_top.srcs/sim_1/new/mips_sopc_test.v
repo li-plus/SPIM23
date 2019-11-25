@@ -42,8 +42,8 @@ module openmips_min_sopc_tb();
   wire video_clk;
   wire video_de;
 
-  wire[16:0] gram_addr_o;
-  wire[31:0] gram_data_o;
+  wire[18:0] gram_addr_o;
+  wire[7:0] gram_data_o;
   wire gram_we_n;
 
 //  inst_rom rom(

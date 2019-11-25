@@ -53,7 +53,7 @@ begin
 end
 
 always @ (posedge clk) begin
-    if (hdata == (HMAX - 1) && vdata == (VMAX - 1)) begin
+    if (addr >= 480000) begin
         addr <= 0;
     end else begin
         if (data_enable) begin

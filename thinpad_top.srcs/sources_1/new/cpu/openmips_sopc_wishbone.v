@@ -33,8 +33,8 @@ module openmips_min_sopc_wishbone(
 `endif
     
     // VGA
-    output wire[31:0] gram_data_o,
-	output wire[16:0] gram_addr_o,
+    output wire[7:0] gram_data_o,
+	output wire[18:0] gram_addr_o,
 	output wire gram_we_n,
 
     output wire[`InstAddrBus] pc_o,
