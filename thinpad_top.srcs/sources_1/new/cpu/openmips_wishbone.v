@@ -25,17 +25,17 @@ module openmips_wishbone(
     output wire dwishbone_stb_o,
     output wire dwishbone_cyc_o,
     
-    output wire timer_int_o,
+    output wire timer_int_o
     
     `ifdef USE_CPLD_UART
-    input wire stallreq_from_uart,
+    ,input wire stallreq_from_uart
     `endif
   
-    // for debug
-    output wire[`InstAddrBus] pc_o,
-    output wire[`InstBus] inst_o
     `ifdef DEBUG
-    ,output wire[`RegBus] r1_o
+    // for debug
+    ,output wire[`InstAddrBus] pc_o,
+    output wire[`InstBus] inst_o,
+    output wire[`RegBus] r1_o
     `endif
 );
 
@@ -45,10 +45,18 @@ wire[`InstBus] inst_i;
 wire[`InstAddrBus] id_pc_i;
 wire[`InstBus] id_inst_i;
 
+wire[`InstAddrBus] virtual_pc;
+wire[`InstAddrBus] physical_pc;
+wire[31:0] if_excepttype_o;
+wire if_tlb_hit;
+
+`ifdef DEBUG
 assign pc_o = pc;
 assign inst_o = id_inst_i;
+`endif
 
 // id
+wire[31:0] id_excepttype_i;
 wire[`AluOpBus] id_aluop_o;
 wire[`AluSelBus] id_alusel_o;
 wire[`RegBus] id_reg1_o;
@@ -71,6 +79,7 @@ wire[`RegAddrBus] ex_wd_i;
 wire ex_is_in_delayslot_i;
 wire[`RegBus] ex_link_address_i;
 wire[`RegBus] ex_inst_i;
+wire[`RegBus] ex_inst_o;
 wire[31:0] ex_excepttype_i;	
 wire[`RegBus] ex_current_inst_address_i;	
 wire ex_wreg_o;
@@ -89,6 +98,7 @@ wire[`RegBus] ex_cp0_reg_data_o;
 wire[31:0] ex_excepttype_o;
 wire[`RegBus] ex_current_inst_address_o;
 wire ex_is_in_delayslot_o;
+
 // mem
 wire mem_wreg_i;
 wire[`RegAddrBus] mem_wd_i;
@@ -105,7 +115,14 @@ wire[4:0] mem_cp0_reg_waddr_i;
 wire[`RegBus] mem_cp0_reg_data_i;
 wire[31:0] mem_excepttype_i;	
 wire mem_is_in_delayslot_i;
-wire[`RegBus] mem_current_inst_address_i;	
+wire[`RegBus] mem_current_inst_address_i;
+wire[`InstBus] mem_inst_i;
+wire[`InstBus] mem_inst_o;
+wire[`InstAddrBus] virtual_addr;
+wire[`InstAddrBus] physical_addr;
+wire[`InstAddrBus] bad_address;
+wire mem_tlb_hit;
+wire mem_tlb_dirty;
 
 wire mem_wreg_o;
 wire[`RegAddrBus] mem_wd_o;
@@ -137,6 +154,14 @@ wire[`RegBus] wb_cp0_reg_data_i;
 wire[31:0] wb_excepttype_i;
 wire wb_is_in_delayslot_i;
 wire[`RegBus] wb_current_inst_address_i;
+wire[`InstBus] wb_inst_i;
+
+// mmu -> cp0
+wire[`RegBus] mmu_pagemask;
+wire[`RegBus] mmu_entryhi;
+wire[`RegBus] mmu_entrylo0;
+wire[`RegBus] mmu_entrylo1;
+wire[`RegBus] mmu_index;
 
 wire reg1_read;
 wire reg2_read;
@@ -183,13 +208,20 @@ wire[4:0] cp0_raddr_i;
 wire flush;
 wire[`RegBus] new_pc;
 
-wire[`RegBus] cp0_count;
+wire[`RegBus]   cp0_index;
+wire[`RegBus]   cp0_random;
+wire[`RegBus]   cp0_entrylo0;
+wire[`RegBus]   cp0_entrylo1;
+wire[`RegBus]   cp0_pagemask;
+wire[`RegBus]   cp0_badvaddr;
+wire[`RegBus]   cp0_count;
+wire[`RegBus]   cp0_entryhi;
 wire[`RegBus]	cp0_compare;
 wire[`RegBus]	cp0_status;
 wire[`RegBus]	cp0_cause;
 wire[`RegBus]	cp0_epc;
-wire[`RegBus]	cp0_config;
-wire[`RegBus]	cp0_ebase; 
+wire[`RegBus]	cp0_ebase;
+wire[`RegBus]	cp0_config; 
 
 wire[`RegBus] latest_epc;
 
@@ -202,10 +234,6 @@ wire[`RegBus] ram_data_o;
 wire ram_ce_o;
 wire[`RegBus] ram_data_i;
 
-// for MMU
-wire[`InstAddrBus] physical_pc;
-wire[31:0] physical_ram_addr;
-
 
 pc_reg pc_reg0(
     .clk(clk),
@@ -216,7 +244,11 @@ pc_reg pc_reg0(
     .branch_flag_i(id_branch_flag_o),
     .branch_target_address_i(branch_target_address),
     .pc(pc),
-    .ce(rom_ce)
+    .ce(rom_ce),
+    .excepttype_o(if_excepttype_o),
+    .physical_pc(physical_pc),
+    .virtual_pc(virtual_pc),
+    .tlb_hit(if_tlb_hit)
 );
 
 if_id if_id0(
@@ -224,10 +256,12 @@ if_id if_id0(
     .rst(rst),
     .stall(stall),
     .flush(flush),
-    .if_pc(pc),
+    .if_pc(virtual_pc),
     .if_inst(inst_i),
     .id_pc(id_pc_i),
-    .id_inst(id_inst_i)
+    .id_inst(id_inst_i),
+    .if_excepttype(if_excepttype_o),
+    .id_excepttype(id_excepttype_i)
 );
 
 
@@ -267,6 +301,7 @@ id id0(
     .reg2_o(id_reg2_o),
     .wd_o(id_wd_o),
     .wreg_o(id_wreg_o),
+    .excepttype_i(id_excepttype_i),
     .excepttype_o(id_excepttype_o),
     .inst_o(id_inst_o),
     
@@ -345,6 +380,7 @@ ex ex0(
     .hi_i(hi),
     .lo_i(lo),
     .inst_i(ex_inst_i),
+    .inst_o(ex_inst_o),
     
     .wb_hi_i(wb_hi_i),
     .wb_lo_i(wb_lo_i),
@@ -401,7 +437,15 @@ ex ex0(
     .excepttype_o(ex_excepttype_o),
     .is_in_delayslot_o(ex_is_in_delayslot_o),
     .current_inst_address_o(ex_current_inst_address_o),	
-    .stallreq(stallreq_from_ex)
+    .stallreq(stallreq_from_ex),
+
+    // hazard MMU cp0
+    .mmu_inst_i(wb_inst_i),
+    .mmu_pagemask_i(mmu_pagemask),
+    .mmu_entryhi_i(mmu_entryhi),
+    .mmu_entrylo0_i(mmu_entrylo0),
+    .mmu_entrylo1_i(mmu_entrylo1),
+    .mmu_index_i(mmu_index)
 );
 
 
@@ -431,6 +475,7 @@ ex_mem ex_mem0(
     .ex_current_inst_address(ex_current_inst_address_o),	
     .hilo_i(hilo_temp_o),
     .cnt_i(cnt_o),
+    .ex_inst(ex_inst_o),
     
     
     .mem_wd(mem_wd_i),
@@ -453,8 +498,8 @@ ex_mem ex_mem0(
     .mem_current_inst_address(mem_current_inst_address_i),
     
     .hilo_o(hilo_temp_i),
-    .cnt_o(cnt_i)
-
+    .cnt_o(cnt_i),
+    .mem_inst(mem_inst_i)
 );
 
 
@@ -473,6 +518,8 @@ mem mem0(
     
     
     .LLbit_i(LLbit_o),
+    .inst_i(mem_inst_i),
+    .inst_o(mem_inst_o),
     
     .wb_LLbit_we_i(wb_LLbit_we_i),
     .wb_LLbit_value_i(wb_LLbit_value_i),
@@ -517,7 +564,13 @@ mem mem0(
     .excepttype_o(mem_excepttype_o),
     .cp0_epc_o(latest_epc),
     .is_in_delayslot_o(mem_is_in_delayslot_o),
-    .current_inst_address_o(mem_current_inst_address_o)
+    .current_inst_address_o(mem_current_inst_address_o),
+
+    .virtual_addr(virtual_addr),
+    .physical_addr(physical_addr),
+    .tlb_hit(mem_tlb_hit),
+    .tlb_dirty(mem_tlb_dirty),
+    .bad_address(bad_address)
 );
 
 mem_wb mem_wb0(
@@ -546,7 +599,9 @@ mem_wb mem_wb0(
     .wb_LLbit_value(wb_LLbit_value_i),
     .wb_cp0_reg_we(wb_cp0_reg_we_i),
     .wb_cp0_reg_waddr(wb_cp0_reg_waddr_i),
-    .wb_cp0_reg_data(wb_cp0_reg_data_i)
+    .wb_cp0_reg_data(wb_cp0_reg_data_i),
+    .mem_inst(mem_inst_o),
+    .wb_inst(wb_inst_i)
 );
 
 hilo_reg hilo_reg0(
@@ -614,28 +669,59 @@ cp0_reg cp0_reg0(
     .int_i(int_i),
     .current_inst_addr_i(mem_current_inst_address_o),
     .is_in_delayslot_i(mem_is_in_delayslot_o),
+    .bad_address_i(bad_address),
+
+    .inst_i(wb_inst_i),
+    .pagemask_i(mmu_pagemask),
+    .entryhi_i(mmu_entryhi),
+    .entrylo0_i(mmu_entrylo0),
+    .entrylo1_i(mmu_entrylo1),
+    .index_i(mmu_index),
+
     .data_o(cp0_data_o),
+    .index_o(cp0_index),
+    .random_o(cp0_random),
+    .entrylo0_o(cp0_entrylo0),
+    .entrylo1_o(cp0_entrylo1),
+    .pagemask_o(cp0_pagemask),
+    .badvaddr_o(cp0_badvaddr),
     .count_o(cp0_count),
+    .entryhi_o(cp0_entryhi),
     .compare_o(cp0_compare),
     .status_o(cp0_status),
     .cause_o(cp0_cause),
     .epc_o(cp0_epc),
-    .config_o(cp0_config),
     .ebase_o(cp0_ebase),
+    .config_o(cp0_config),
 
     .timer_int_o(timer_int_o)
 );
 
-mmu mmu_if(
+mmu mmu_t(
+    .clk(clk),
     .rst(rst),
-    .addr_i(pc),
-    .addr_o(physical_pc)
-);
+    .inst_addr_i(virtual_pc),
+    .inst_addr_o(physical_pc),
+    .data_addr_i(virtual_addr),
+    .data_addr_o(physical_addr),
 
-mmu mmu_data(
-    .rst(rst),
-    .addr_i(ram_addr_o),
-    .addr_o(physical_ram_addr)
+    .inst_i(wb_inst_i),
+    .index_i(cp0_index),
+    .random_i(cp0_random),
+    .entrylo0_i(cp0_entrylo0),
+    .entrylo1_i(cp0_entrylo1),
+    .pagemask_i(cp0_pagemask),
+    .entryhi_i(cp0_entryhi),
+
+    .inst_tlb_hit(if_tlb_hit),
+    .data_tlb_hit(mem_tlb_hit),
+    .data_tlb_dirty(mem_tlb_dirty),
+
+    .pagemask_o(mmu_pagemask),
+    .entryhi_o(mmu_entryhi),
+    .entrylo0_o(mmu_entrylo0),
+    .entrylo1_o(mmu_entrylo1),
+    .index_o(mmu_index)
 );
 
 // data wishbone
@@ -651,7 +737,7 @@ wishbone_bus_if dwishbone_bus_if(
     
     .cpu_ce_i(ram_ce_o),
     .cpu_data_i(ram_data_o),
-    .cpu_addr_i(physical_ram_addr),
+    .cpu_addr_i(ram_addr_o),
     .cpu_we_i(ram_we_o),
     .cpu_sel_i(ram_sel_o),
     .cpu_data_o(ram_data_i),
@@ -681,7 +767,7 @@ wishbone_bus_if #(.INST_BUS(`True)) iwishbone_bus_if(
     
     .cpu_ce_i(rom_ce),
     .cpu_data_i(32'h00000000),
-    .cpu_addr_i(physical_pc),
+    .cpu_addr_i(pc),
     .cpu_we_i(1'b0),
     .cpu_sel_i(4'b1111),
     .cpu_data_o(inst_i),

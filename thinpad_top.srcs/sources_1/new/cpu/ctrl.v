@@ -27,13 +27,18 @@ module ctrl(
 		end else if(excepttype_i != `ZeroWord) begin
 		  flush <= 1'b1;
 		  stall <= 6'b000000;
-			case (excepttype_i) // TODO change this according to concrete error handling loc
-				32'h00000001: new_pc <= ebase_i + 32'h180; //interrupt
-				32'h00000008: new_pc <= ebase_i + 32'h180; //syscall
-				32'h0000000a: new_pc <= ebase_i + 32'h180; //inst_invalid
-				32'h0000000d: new_pc <= ebase_i + 32'h180; //trap
-				32'h0000000c: new_pc <= ebase_i + 32'h180; //ov
-				32'h0000000e: new_pc <= cp0_epc_i; //eret
+			case (excepttype_i)
+				`EXCEPT_INT: new_pc <= ebase_i + 32'h180;
+				`EXCEPT_ADEL: new_pc <= ebase_i + 32'h180;
+				`EXCEPT_ADES: new_pc <= ebase_i + 32'h180;
+				`EXCEPT_SYSCALL: new_pc <= ebase_i + 32'h180;
+				`EXCEPT_INVALID_INST: new_pc <= ebase_i + 32'h180;
+				`EXCEPT_OVERFLOW: new_pc <= ebase_i + 32'h180;
+				`EXCEPT_TRAP: new_pc <= ebase_i + 32'h180;
+				`EXCEPT_ERET: new_pc <= cp0_epc_i;
+				`EXCEPT_TLBL: new_pc <= ebase_i;
+				`EXCEPT_TLBS: new_pc <= ebase_i;
+				`EXCEPT_MOD: new_pc <= ebase_i;
 				default: ;
             endcase
         end else if(stallreq_from_mem == `Stop) begin
