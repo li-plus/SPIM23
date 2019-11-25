@@ -5,3 +5,28 @@ Thinpad 模板工程
 
 代码中包含中文注释，编码为utf-8，在Windows版Vivado下可能出现乱码问题。  
 请用别的代码编辑器打开文件，并将编码改为GBK。
+
+## VGA Demo
+
+Load kernel to base RAM 0x00000000, connect your terminal, and press reset button.
+
+Load `thinpad_top.srcs/sources_1/new/demo/pic.bin` to external RAM 0x00000000.
+
+Execute the following scripts in your terminal. Then you see the picture.
+
+```assembly
+    lui     $t0, 7
+    ori     $t0, 0x5300
+    lui     $t1, 0x8040
+    lui     $t2, 0xba00
+vga:
+    lb      $t3, 0($t1)
+    sb      $t3, 0($t2)
+    addiu   $t0, $t0, -1
+    addiu   $t1, $t1, 1
+    addiu   $t2, $t2, 1
+    bnez    $t0, vga
+    nop
+    jr      $ra
+    nop
+```
