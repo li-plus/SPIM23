@@ -26,19 +26,22 @@ output          FLASH_BYTE_N,
 output            idle
 );
 
-`define IDLE 3'h0
-`define RD1 3'h1
-`define RD2 3'h2
-`define RD3 3'h3
-`define RD4 3'h4
-`define OK 3'h7
+`define IDLE 4'h0
+`define RD1 4'h1
+`define RD2 4'h2
+`define RD3 4'h3
+`define RD4 4'h4
+`define RD5 4'h5
+`define RD6 4'h6
+`define ACK 4'h7
+`define OK 4'h8
 //`define ACK 3'h5
 
 wire wb_acc = wb_cyc_i & wb_stb_i; // wb access
 wire wb_wr = wb_acc & wb_we_i & ~wb_rst_i; // write
 wire wb_rd = wb_acc & ~wb_we_i & ~wb_rst_i; // read
 
-reg[2:0] state;
+reg[3:0] state;
 
 reg[22:0] reg_flash_addr = 0;
 
@@ -65,9 +68,13 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
     end else begin
         case(state)
             `IDLE: begin
+                reg_wb_data_o_lo <= 16'h0000;
+                reg_wb_data_o_hi <= 16'h0000;
                 reg_flash_addr <= wb_adr_i[22:0];
                 if(wb_rd) begin
                     state <= `RD1;
+                end else if (wb_wr) begin
+                    state <= `ACK;
                 end
             end
             `RD1: begin
@@ -75,22 +82,29 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
             end
             `RD2: begin
                 state <= `RD3;
-                reg_wb_data_o_lo <= FLASH_DQ;
-                reg_flash_addr <= reg_flash_addr + 2;
             end
             `RD3: begin
                 state <= `RD4;
+                reg_wb_data_o_lo <= FLASH_DQ;
+                reg_flash_addr <= reg_flash_addr + 2;
             end
             `RD4: begin
-                state <= `OK;
+                state <= `RD5;
+            end
+            `RD5: begin
+                state <= `RD6;
+            end
+            `RD6: begin
+                state <= `ACK;
                 reg_wb_data_o_hi <= FLASH_DQ;
+            end
+            `ACK: begin
+                state <= `OK;
                 wb_ack_o <= `True;
             end
             `OK: begin
                 state <= `IDLE;
                 wb_ack_o <= `False;
-                reg_wb_data_o_lo <= 16'h0000;
-                reg_wb_data_o_hi <= 16'h0000;
             end
             default: state <= `IDLE;
         endcase
