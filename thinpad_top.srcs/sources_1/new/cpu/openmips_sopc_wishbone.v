@@ -37,6 +37,16 @@ module openmips_min_sopc_wishbone(
 	output wire[18:0] gram_addr_o,
 	output wire gram_we_n,
 
+	// Flash
+    output wire [22:0]flash_a,      //Flash addr
+    inout  wire [15:0]flash_d,      //Flash data
+    output wire flash_rp_n,         //Flash reset
+    output wire flash_vpen,         //Flash write protect
+    output wire flash_ce_n,
+    output wire flash_oe_n,
+    output wire flash_we_n,
+    output wire flash_byte_n,       //Flash 8 bit enable
+
     output wire[`InstAddrBus] pc_o,
     output wire[`InstBus] inst_o
     `ifdef DEBUG
@@ -104,6 +114,15 @@ module openmips_min_sopc_wishbone(
 	wire       s3_stb_o;
 	wire       s3_ack_i;
  
+	wire[31:0] s4_data_i;
+	wire[31:0] s4_data_o;
+	wire[31:0] s4_addr_o;
+	wire[3:0]  s4_sel_o;
+	wire       s4_we_o; 
+	wire       s4_cyc_o; 
+	wire       s4_stb_o;
+	wire       s4_ack_i;
+
  wire uart_int;
  
  assign uart_int_o = uart_int;
@@ -253,7 +272,7 @@ uart_wrapper uart_adapter(
 );
 
 // 3 - VGA
-gram_controller gram_controller1(
+gram_controller gram_ctrl(
     // clk signals
     .wb_clk_i(clk),
     .wb_rst_i(rst),
@@ -274,6 +293,32 @@ gram_controller gram_controller1(
     .GRAM_WE_N(gram_we_n),
 //	.GRAM_CE_N(gram_ce_n),
     .idle()
+);
+
+// 4 - Flash
+flash_controller flash_ctrl(
+	.wb_clk_i(clk),
+	.wb_rst_i(rst), 
+
+	.wb_dat_i(s4_data_o), 
+	.wb_dat_o(s4_data_i), 
+	.wb_adr_i(s4_addr_o),
+	.wb_sel_i(s4_sel_o),
+	.wb_we_i(s4_we_o),
+	.wb_cyc_i(s4_cyc_o), 
+	.wb_stb_i(s4_stb_o), 
+	.wb_ack_o(s4_ack_i),
+
+	.FLASH_DQ(flash_d),
+	.FLASH_ADDR(flash_a),
+	.FLASH_CE_N(flash_ce_n),
+	.FLASH_OE_N(flash_oe_n),
+	.FLASH_WE_N(flash_we_n),
+	.FLASH_RP_N(flash_rp_n),
+	.FLASH_VPEN(flash_vpen),
+	.FLASH_BYTE_N(flash_byte_n),
+
+	.idle()
 );
 
 // Wishbone InterConn Matrix
@@ -423,14 +468,14 @@ wb_conmax_top wb_conmax_top0(
 	    .s3_rty_i(1'b0),
 
 	    // Slave 4 Interface
-	    .s4_data_i(),
-	    .s4_data_o(),
-	    .s4_addr_o(),
-	    .s4_sel_o(),
-	    .s4_we_o(), 
-	    .s4_cyc_o(), 
-	    .s4_stb_o(),
-	    .s4_ack_i(1'b0), 
+	    .s4_data_i(s4_data_i),
+	    .s4_data_o(s4_data_o),
+	    .s4_addr_o(s4_addr_o),
+	    .s4_sel_o(s4_sel_o),
+	    .s4_we_o(s4_we_o), 
+	    .s4_cyc_o(s4_cyc_o), 
+	    .s4_stb_o(s4_stb_o),
+	    .s4_ack_i(s4_ack_i), 
 	    .s4_err_i(1'b0), 
 	    .s4_rty_i(1'b0),
 

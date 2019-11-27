@@ -309,9 +309,14 @@ always @(*) begin
                 else
                     addr_o <= `ZeroWord;
             end
-            8'hba: begin
+            8'hba: begin // 0xba000000 - 0xba0752ff
                 if(addr_i[23:19] == 5'b00000) begin
-                    addr_o <= {12'h300, 1'b0, addr_i[18:0]}; // graphic ram
+                    addr_o <= {8'h30, 5'b00000, addr_i[18:0]}; // graphic ram
+                end
+            end
+            8'hbc: begin // 0xbc000000 - 0xbc7fffff
+                if(addr_i[23] == 1'b0) begin
+                    addr_o <= {8'h40, 1'b0, addr_i[22:0]}; // flash
                 end
             end
             default: addr_o <= `ZeroWord;

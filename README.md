@@ -30,3 +30,30 @@ vga:
     jr      $ra
     nop
 ```
+
+## Reading from Flash
+
+Load `thinpad_top.srcs/sources_1/new/demo/pic.bin` into external RAM `0x00000000`, and execute the following scripts.
+
+```assembly
+    lui     $t0, 7
+    ori     $t0, 0x5300
+    lui     $t1, 0xbc00
+    lui     $t2, 0xba00
+flash:
+    lw      $t3, 0($t1)
+    sb      $t3, 0($t2)
+    sra     $t3, $t3, 8
+    sb      $t3, 1($t2)
+    sra     $t3, $t3, 8
+    sb      $t3, 2($t2)
+    sra     $t3, $t3, 8
+    sb      $t3, 3($t2) 
+    addiu   $t0, $t0, -4
+    addiu   $t1, $t1, 4
+    addiu   $t2, $t2, 4
+    bnez    $t0, flash
+    nop
+    jr      $ra
+    nop
+```
