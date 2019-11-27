@@ -54,9 +54,13 @@ always @(posedge wb_clk_i or posedge wb_rst_i) begin
     end else begin
         case(state)
             `IDLE: begin
+                if(wb_acc) begin
+                    wb_ack_o <= `True;
+                end else begin
+                    wb_ack_o <= `False;
+                end
                 if(wb_wr) begin
                     state <= `WE0;
-                    wb_ack_o <= `True;
                 end
             end
             `WE0: begin

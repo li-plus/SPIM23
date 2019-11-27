@@ -697,13 +697,12 @@ cp0_reg cp0_reg0(
     .timer_int_o(timer_int_o)
 );
 
-mmu mmu_t(
+
+mmu mmu_inst(
     .clk(clk),
     .rst(rst),
-    .inst_addr_i(virtual_pc),
-    .inst_addr_o(physical_pc),
-    .data_addr_i(virtual_addr),
-    .data_addr_o(physical_addr),
+    .addr_i(virtual_pc),
+    .addr_o(physical_pc),
 
     .inst_i(wb_inst_i),
     .index_i(cp0_index),
@@ -713,9 +712,25 @@ mmu mmu_t(
     .pagemask_i(cp0_pagemask),
     .entryhi_i(cp0_entryhi),
 
-    .inst_tlb_hit(if_tlb_hit),
-    .data_tlb_hit(mem_tlb_hit),
-    .data_tlb_dirty(mem_tlb_dirty),
+    .tlb_hit(if_tlb_hit)
+);
+
+mmu mmu_data(
+    .clk(clk),
+    .rst(rst),
+    .addr_i(virtual_addr),
+    .addr_o(physical_addr),
+
+    .inst_i(wb_inst_i),
+    .index_i(cp0_index),
+    .random_i(cp0_random),
+    .entrylo0_i(cp0_entrylo0),
+    .entrylo1_i(cp0_entrylo1),
+    .pagemask_i(cp0_pagemask),
+    .entryhi_i(cp0_entryhi),
+
+    .tlb_hit(mem_tlb_hit),
+    .tlb_dirty(mem_tlb_dirty),
 
     .pagemask_o(mmu_pagemask),
     .entryhi_o(mmu_entryhi),

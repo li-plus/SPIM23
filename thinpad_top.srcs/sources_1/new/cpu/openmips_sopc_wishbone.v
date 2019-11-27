@@ -122,6 +122,12 @@ module openmips_min_sopc_wishbone(
 	wire       s4_cyc_o; 
 	wire       s4_stb_o;
 	wire       s4_ack_i;
+	
+    wire[31:0] s5_data_i;
+    wire[31:0] s5_addr_o;
+    wire       s5_cyc_o; 
+    wire       s5_stb_o;
+    wire       s5_ack_i;
 
  wire uart_int;
  
@@ -321,6 +327,17 @@ flash_controller flash_ctrl(
 	.idle()
 );
 
+
+// 5 - BootROM
+bootrom_controller bootrom(
+	.wb_rst_i(rst),
+	.wb_dat_o(s5_data_i),
+	.wb_adr_i(s5_addr_o),
+	.wb_cyc_i(s5_cyc_o), 
+	.wb_stb_i(s5_stb_o), 
+	.wb_ack_o(s5_ack_i)
+);
+
 // Wishbone InterConn Matrix
 
 wb_conmax_top wb_conmax_top0(
@@ -480,15 +497,15 @@ wb_conmax_top wb_conmax_top0(
 	    .s4_rty_i(1'b0),
 
 	    // Slave 5 Interface
-	    .s5_data_i(),
+	    .s5_data_i(s5_data_i),
 	    .s5_data_o(),
-	    .s5_addr_o(),
+	    .s5_addr_o(s5_addr_o),
 	    .s5_sel_o(),
 	    .s5_we_o(), 
-	    .s5_cyc_o(), 
-	    .s5_stb_o(),
-	    .s5_ack_i(1'b0), 
-	    .s5_err_i(1'b0), 
+	    .s5_cyc_o(s5_cyc_o), 
+	    .s5_stb_o(s5_stb_o),
+	    .s5_ack_i(s5_ack_i), 
+	    .s5_err_i(1'b0),
 	    .s5_rty_i(1'b0),
 
 	    // Slave 6 Interface
