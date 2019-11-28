@@ -7,6 +7,8 @@ module openmips_min_sopc_tb();
   reg     clk_50M;
   reg     rst;
   
+  reg[3:0] touch_btn;
+  
   initial begin
     clk_50M = 1'b0;
     forever #20 clk_50M = ~clk_50M;
@@ -15,6 +17,10 @@ module openmips_min_sopc_tb();
   initial begin
     rst = `RstEnable;
     #195 rst= `RstDisable;
+    touch_btn = 4'b0000;
+    #1166 touch_btn = 4'b0001;
+    #1180 touch_btn = 4'b0000;
+    
     `ifdef USE_CPLD_UART
     //#2000 cpld.pc_send_byte(8'hbe);
     `endif
@@ -157,12 +163,14 @@ module openmips_min_sopc_tb();
     .Info(1'b1));
 
   // user design
-  wire[31:0] pc;
-  wire[31:0] inst;
 
   wire[18:0] gram_addr_o;
   wire[7:0] gram_data_o;
   wire gram_we_n;
+  
+  wire[31:0] gpio_i;
+ 
+  assign gpio_i = {28'h0000000, touch_btn};
 
   openmips_min_sopc_wishbone sopc(
       .clk(clk_50M),
@@ -202,9 +210,8 @@ module openmips_min_sopc_tb();
       .flash_oe_n(flash_oe_n),
       .flash_we_n(flash_we_n),
       .flash_byte_n(flash_byte_n),
-
-      .pc_o(pc),
-      .inst_o(inst)
+      
+      .gpio_i(gpio_i)
   );
 
 wire[11:0] hdata;

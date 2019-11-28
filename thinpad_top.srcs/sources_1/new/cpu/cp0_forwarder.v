@@ -13,7 +13,7 @@ always @(*) begin
     cp0_reg_data_o <=  `ZeroWord;
     need_forward <= `False;
     if(cp0_reg_addr_i == `CP0_REG_WIRED && read_addr_i == `CP0_REG_RANDOM) begin
-        cp0_reg_data_o <= {27'h00000000, 5'b11111};
+        cp0_reg_data_o <= {28'h00000000, 4'b1111};
         need_forward <= `True;
     end else if(read_addr_i == cp0_reg_addr_i) begin
         need_forward <= `True;

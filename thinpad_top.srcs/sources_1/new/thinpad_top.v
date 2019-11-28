@@ -102,11 +102,12 @@ pll_example clock_gen
     .clk_in1(clk_50M)
 );
 
-wire[31:0] pc;
-wire[31:0] inst;
-wire[7:0] number;
-SEG7_LUT segL(.oSEG1(dpy0), .iDIG(number[3:0]));
-SEG7_LUT segH(.oSEG1(dpy1), .iDIG(number[7:4]));
+wire[31:0] gpio_o;
+SEG7_LUT segL(.oSEG1(dpy0), .iDIG(gpio_o[3:0]));
+SEG7_LUT segH(.oSEG1(dpy1), .iDIG(gpio_o[7:4]));
+assign leds = gpio_o[23:8];
+wire[31:0] gpio_i;
+assign gpio_i = {28'h0000000, touch_btn};
 
 openmips_min_sopc_wishbone sopc(
     .clk(clk_main),
@@ -149,13 +150,9 @@ openmips_min_sopc_wishbone sopc(
     .flash_oe_n(flash_oe_n),
     .flash_we_n(flash_we_n),
     .flash_byte_n(flash_byte_n),
-
-    .pc_o(pc),
-    .inst_o(inst)
-    `ifdef DEBUG
-    ,.r1_o({number, 8'hzz, leds[15:1], 1'hz}),
-    .uart_int_o(leds[0])
-    `endif
+    
+    .gpio_i(gpio_i),
+    .gpio_o(gpio_o)
 );
 
 wire[11:0] hdata;

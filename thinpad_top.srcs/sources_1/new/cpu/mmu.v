@@ -177,9 +177,13 @@ always @(*) begin
                 if(converted_addr[23:22] == 2'b00) addr_o <= {4'h0, 6'b000000, converted_addr[21:0]}; // base RAM
                 else  addr_o <= {4'h1, 6'b000000, converted_addr[21:0]}; // ext RAM
             end
-            8'hb0: begin // 0xb0000000 - 0xb000003f   bootROM
-                if(converted_addr[23:8] == 4'h0000)
+            8'hb0: begin // 0xb0000000 - 0xb00000ff   bootROM
+                if(converted_addr[23:8] == 16'h0000)
                     addr_o <= {4'h5, 20'h00000, converted_addr[7:0]};
+            end
+            8'hb1: begin  // 0xb1000000 - 0xb100000f  GPIO
+                if(converted_addr[23:6] == 18'h0000)
+                    addr_o <= {4'h6, 22'h00000, converted_addr[5:0]};
             end
             8'hbf: begin
                 if(converted_addr[23:20] == 4'hd)

@@ -30,13 +30,6 @@ module openmips_wishbone(
     `ifdef USE_CPLD_UART
     ,input wire stallreq_from_uart
     `endif
-  
-    `ifdef DEBUG
-    // for debug
-    ,output wire[`InstAddrBus] pc_o,
-    output wire[`InstBus] inst_o,
-    output wire[`RegBus] r1_o
-    `endif
 );
 
 // pc (if)
@@ -49,11 +42,6 @@ wire[`InstAddrBus] virtual_pc;
 wire[`InstAddrBus] physical_pc;
 wire[31:0] if_excepttype_o;
 wire if_tlb_hit;
-
-`ifdef DEBUG
-assign pc_o = pc;
-assign inst_o = id_inst_i;
-`endif
 
 // id
 wire[31:0] id_excepttype_i;
@@ -328,9 +316,6 @@ register register1(
     .re2 (reg2_read),
     .raddr2 (reg2_addr),
     .rdata2 (reg2_data)
-    `ifdef DEBUG
-    ,.r1(r1_o)
-    `endif
 );
 
 id_ex id_ex0(

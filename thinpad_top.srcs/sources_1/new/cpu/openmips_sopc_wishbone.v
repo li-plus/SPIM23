@@ -46,17 +46,18 @@ module openmips_min_sopc_wishbone(
     output wire flash_oe_n,
     output wire flash_we_n,
     output wire flash_byte_n,       //Flash 8 bit enable
+    
+    // GPIO
+    input wire [31:0]   gpio_i,
+    output wire [31:0] gpio_o,
 
     output wire[`InstAddrBus] pc_o,
     output wire[`InstBus] inst_o
-    `ifdef DEBUG
-    ,output wire[`RegBus] r1_o,
-    output wire uart_int_o
-    `endif
 );
 
     wire[7:0] int;
     wire timer_int;
+    wire gpio_int;
   
     // master
     wire[31:0] m0_data_i;
@@ -128,12 +129,19 @@ module openmips_min_sopc_wishbone(
     wire       s5_cyc_o; 
     wire       s5_stb_o;
     wire       s5_ack_i;
+    
+    wire[31:0] s6_data_i;
+    wire[31:0] s6_data_o;
+    wire[31:0] s6_addr_o;
+    wire[3:0]  s6_sel_o;
+    wire       s6_we_o; 
+    wire       s6_cyc_o; 
+    wire       s6_stb_o;
+    wire       s6_ack_i;
 
  wire uart_int;
  
- assign uart_int_o = uart_int;
- 
- assign int = {timer_int, 2'b00, uart_int, 2'b00};
+ assign int = {3'b00, uart_int, gpio_int, timer_int};
  
  `ifdef USE_CPLD_UART
  wire stall_base_ram;
@@ -168,12 +176,7 @@ module openmips_min_sopc_wishbone(
     .stallreq_from_uart(stall_base_ram),
     `endif
 
-    .timer_int_o(timer_int),
-    .pc_o(pc_o),
-    .inst_o(inst_o)
-    `ifdef DEBUG
-    ,.r1_o(r1_o)
-    `endif
+    .timer_int_o(timer_int)
 );
 
 
@@ -336,6 +339,25 @@ bootrom_controller bootrom(
 	.wb_cyc_i(s5_cyc_o), 
 	.wb_stb_i(s5_stb_o), 
 	.wb_ack_o(s5_ack_i)
+);
+
+// 6 - GPIO
+gpio_controller gpio_ctrl(
+    .wb_clk_i(clk),
+    .wb_rst_i(rst), 
+    .wb_cyc_i(s6_cyc_o),
+    .wb_adr_i(s6_addr_o[7:0]),
+    .wb_dat_i(s6_data_o),
+    .wb_sel_i(s6_sel_o),
+    .wb_we_i(s6_we_o),
+    .wb_stb_i(s6_stb_o),
+    .wb_dat_o(s6_data_i),
+    .wb_ack_o(s6_ack_i),
+    .wb_err_o(),
+    .wb_inta_o(gpio_int),
+    .ext_pad_i(gpio_i),
+    .ext_pad_o(gpio_o),
+    .ext_padoe_o()
 );
 
 // Wishbone InterConn Matrix
@@ -509,14 +531,14 @@ wb_conmax_top wb_conmax_top0(
 	    .s5_rty_i(1'b0),
 
 	    // Slave 6 Interface
-	    .s6_data_i(),
-	    .s6_data_o(),
-	    .s6_addr_o(),
-	    .s6_sel_o(),
-	    .s6_we_o(), 
-	    .s6_cyc_o(), 
-	    .s6_stb_o(),
-	    .s6_ack_i(1'b0), 
+	    .s6_data_i(s6_data_i),
+	    .s6_data_o(s6_data_o),
+	    .s6_addr_o(s6_addr_o),
+	    .s6_sel_o(s6_sel_o),
+	    .s6_we_o(s6_we_o), 
+	    .s6_cyc_o(s6_cyc_o), 
+	    .s6_stb_o(s6_stb_o),
+	    .s6_ack_i(s6_ack_i), 
 	    .s6_err_i(1'b0), 
 	    .s6_rty_i(1'b0),
 

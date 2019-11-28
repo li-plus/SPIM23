@@ -1,4 +1,3 @@
-`define DEBUG
 //`define USE_CPLD_UART
 // disable CPLD UART to avoid bus sharing
 `define CLK_FREQ 45000000
