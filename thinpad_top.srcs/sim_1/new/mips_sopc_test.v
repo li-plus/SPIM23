@@ -77,7 +77,7 @@ module openmips_min_sopc_tb();
   integer i;
 
   initial begin
-    $readmemh ("E:\\program\\cpu\\inst_rom.data", inst_mem);
+    $readmemh ("../../../../inst_rom.data", inst_mem);
     for(i = 0; i < `DataMemNum; i = i + 1) begin
       ram.data_mem3[i] <= inst_mem[i][31:24];
       ram.data_mem2[i] <= inst_mem[i][23:16];

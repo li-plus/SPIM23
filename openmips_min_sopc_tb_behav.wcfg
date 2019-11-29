@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="460249545fs"></ZoomStartTime>
-      <ZoomEndTime time="2134294026fs"></ZoomEndTime>
-      <Cursor1Time time="1512605000fs"></Cursor1Time>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="2426000001fs"></ZoomEndTime>
+      <Cursor1Time time="1181000000fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="170"></NameColumnWidth>
-      <ValueColumnWidth column_width="174"></ValueColumnWidth>
+      <ValueColumnWidth column_width="114"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="117" />
+   <WVObjectSize size="118" />
    <wvobject type="logic" fp_name="/openmips_min_sopc_tb/rst">
       <obj_property name="ElementShortName">rst</obj_property>
       <obj_property name="ObjectShortName">rst</obj_property>
@@ -323,6 +323,7 @@
       <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/openmips0/dwishbone_bus_if/cpu_addr_i">
          <obj_property name="ElementShortName">cpu_addr_i[31:0]</obj_property>
          <obj_property name="ObjectShortName">cpu_addr_i[31:0]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject type="logic" fp_name="/openmips_min_sopc_tb/sopc/openmips0/dwishbone_bus_if/cpu_we_i">
          <obj_property name="ElementShortName">cpu_we_i</obj_property>
@@ -394,6 +395,7 @@
          <obj_property name="ObjectShortName">regs[0:31][31:0]</obj_property>
          <obj_property name="CustomSignalColor">#FFD700</obj_property>
          <obj_property name="UseCustomSignalColor">true</obj_property>
+         <obj_property name="isExpanded"></obj_property>
       </wvobject>
    </wvobject>
    <wvobject type="group" fp_name="group2752">
@@ -944,5 +946,9 @@
       <obj_property name="ElementShortName">int_i[5:0]</obj_property>
       <obj_property name="ObjectShortName">int_i[5:0]</obj_property>
       <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/openmips_min_sopc_tb/sopc/usb_a0">
+      <obj_property name="ElementShortName">usb_a0</obj_property>
+      <obj_property name="ObjectShortName">usb_a0</obj_property>
    </wvobject>
 </wave_config>

@@ -185,21 +185,26 @@ always @(*) begin
                 if(converted_addr[23:6] == 18'h0000)
                     addr_o <= {4'h6, 22'h00000, converted_addr[5:0]};
             end
-            8'hbf: begin
+            8'hba: begin // 0xba000000 - 0xba0752ff Graphics RAM
+                if(converted_addr[23:19] == 5'b00000) begin
+                    addr_o <= {8'h30, 5'b00000, converted_addr[18:0]};
+                end
+            end
+            8'hbc: begin // 0xbc000000 - 0xbc7fffff Flash
+                if(converted_addr[23] == 1'b0) begin
+                    addr_o <= {8'h40, 1'b0, converted_addr[22:0]};
+                end
+            end
+            8'hbd: begin // 0xbd000000 - 0xbd000004   USB
+                if(converted_addr[23:3] == 21'h000000) begin
+                    addr_o <= {8'h70, converted_addr[23:0]};
+                end
+            end
+            8'hbf: begin  // 0xbfd003f8, 0xbfd003fc UART
                 if(converted_addr[23:20] == 4'hd)
-                    addr_o <= {12'h200, converted_addr[19:0]}; // uart - 0xbfd003f8, 0xbfd003fc
+                    addr_o <= {12'h200, converted_addr[19:0]};
                 else
                     addr_o <= `ZeroWord;
-            end
-            8'hba: begin // 0xba000000 - 0xba0752ff
-                if(converted_addr[23:19] == 5'b00000) begin
-                    addr_o <= {8'h30, 5'b00000, converted_addr[18:0]}; // graphic ram
-                end
-            end
-            8'hbc: begin // 0xbc000000 - 0xbc7fffff
-                if(converted_addr[23] == 1'b0) begin
-                    addr_o <= {8'h40, 1'b0, converted_addr[22:0]}; // flash
-                end
             end
             default: addr_o <= `ZeroWord;
         endcase

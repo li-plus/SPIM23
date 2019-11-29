@@ -50,6 +50,18 @@ module openmips_min_sopc_wishbone(
     // GPIO
     input wire [31:0]   gpio_i,
     output wire [31:0] gpio_o,
+    
+    
+    // USB
+    output wire usb_a0,
+    inout  wire[7:0] usb_data,
+    output wire usb_wr_n,
+    output wire usb_rd_n,
+    output wire usb_cs_n,
+    output wire usb_rst_n,
+    output wire usb_dack_n,
+    input  wire usb_intrq,
+    input  wire usb_drq_n,
 
     output wire[`InstAddrBus] pc_o,
     output wire[`InstBus] inst_o
@@ -138,10 +150,19 @@ module openmips_min_sopc_wishbone(
     wire       s6_cyc_o; 
     wire       s6_stb_o;
     wire       s6_ack_i;
+    
+    wire[31:0] s7_data_i;
+    wire[31:0] s7_data_o;
+    wire[31:0] s7_addr_o;
+    wire       s7_we_o; 
+    wire       s7_cyc_o;
+    wire       s7_stb_o;
+    wire       s7_ack_i;
 
  wire uart_int;
  
- assign int = {3'b00, uart_int, gpio_int, timer_int};
+ assign int = {2'b00, usb_intrq, uart_int, gpio_int, timer_int};
+ // IRQ 2: timer, 3: GPIO, 4: UART, 5: USB
  
  `ifdef USE_CPLD_UART
  wire stall_base_ram;
@@ -360,6 +381,29 @@ gpio_controller gpio_ctrl(
     .ext_padoe_o()
 );
 
+// 7 - USB
+usb_controller usb_ctrl(
+    .wb_clk_i(clk),
+    .wb_rst_i(rst),
+    
+    .wb_dat_i(s7_data_o), 
+    .wb_dat_o(s7_data_i), 
+    .wb_adr_i(s7_addr_o),
+    .wb_we_i(s7_we_o),
+    .wb_cyc_i(s7_cyc_o), 
+    .wb_stb_i(s7_stb_o), 
+    .wb_ack_o(s7_ack_i),
+
+    .usb_a0(usb_a0),
+    .usb_data(usb_data),
+    .usb_wr_n(usb_wr_n),
+    .usb_rd_n(usb_rd_n),
+    .usb_cs_n(usb_cs_n),
+    .usb_rst_n(usb_rst_n),
+    .usb_dack_n(usb_dack_n),
+    .usb_drq_n(usb_drq_n)
+);
+
 // Wishbone InterConn Matrix
 
 wb_conmax_top wb_conmax_top0(
@@ -543,14 +587,14 @@ wb_conmax_top wb_conmax_top0(
 	    .s6_rty_i(1'b0),
 
 	    // Slave 7 Interface
-	    .s7_data_i(),
-	    .s7_data_o(),
-	    .s7_addr_o(),
+	    .s7_data_i(s7_data_i),
+	    .s7_data_o(s7_data_o),
+	    .s7_addr_o(s7_addr_o),
 	    .s7_sel_o(),
-	    .s7_we_o(), 
-	    .s7_cyc_o(), 
-	    .s7_stb_o(),
-	    .s7_ack_i(1'b0), 
+	    .s7_we_o(s7_we_o), 
+	    .s7_cyc_o(s7_cyc_o), 
+	    .s7_stb_o(s7_stb_o),
+	    .s7_ack_i(s7_ack_i), 
 	    .s7_err_i(1'b0), 
 	    .s7_rty_i(1'b0),
 

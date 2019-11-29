@@ -8,8 +8,10 @@
 | kseg0   | 0x80000000 - 0x803FFFFF | BaseRAM          |
 | kseg0   | 0x80400000 - 0x807FFFFF | ExtRAM           |
 | kseg1   | 0xB0000000 - 0xB000003F | 64 Byte BootROM  |
+| kseg1   | 0xB1000000 - 0xB1000024 | GPIO             |
 | kseg1   | 0xBA000000 - 0xBA0752FF | VGA Graphics RAM |
 | kseg1   | 0xBC000000 - 0xBC7FFFFF | 8M Flash         |
+| kseg1   | 0xBD000000 - 0xBD000004 | USB              |
 | kseg1   | 0xBFD003F8 - 0xBFD003FC | UART             |
 
 ### What BootROM does

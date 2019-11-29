@@ -151,6 +151,16 @@ openmips_min_sopc_wishbone sopc(
     .flash_we_n(flash_we_n),
     .flash_byte_n(flash_byte_n),
     
+    .usb_a0(sl811_a0),
+    .usb_data(dm9k_sd[7:0]),
+    .usb_wr_n(sl811_wr_n),
+    .usb_rd_n(sl811_rd_n),
+    .usb_cs_n(sl811_cs_n),
+    .usb_rst_n(sl811_rst_n),
+    .usb_dack_n(sl811_dack_n),
+    .usb_intrq(sl811_intrq),
+    .usb_drq_n(sl811_drq_n),
+    
     .gpio_i(gpio_i),
     .gpio_o(gpio_o)
 );
