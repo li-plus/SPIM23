@@ -6,6 +6,7 @@
 #Exclude all
 #########
 *
+!SPIM23-Snake
 !*/
 thinpad_top.cache/
 thinpad_top.ip_user_files/
