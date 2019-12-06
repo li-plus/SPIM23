@@ -14,6 +14,7 @@ module mem(
            input wire[`RegBus] reg2_i,
            
            input wire[`RegBus] mem_data_i,
+           input wire[`RegBus] inst_i,
            
            input wire LLbit_i,
            input wire wb_LLbit_we_i,
@@ -59,6 +60,8 @@ module mem(
            output wire is_in_delayslot_o,
            output wire[`RegBus] current_inst_address_o
 );
+    
+    wire[18:0] offset = (inst_i[18:0] << 2);
     
     reg LLbit;
     wire[`RegBus] zero32;
@@ -201,6 +204,13 @@ module mem(
                             mem_ce_o <= `ChipDisable;
                         end
                     endcase
+                end
+                `ALU_LWPC_OP: begin
+                    mem_addr_o <= current_inst_address_i + {{13{offset[18]}}, offset};
+                    mem_we     <= `WriteDisable;
+                    wdata_o    <= mem_data_i;
+                    mem_sel_o  <= 4'b1111;
+                    mem_ce_o   <= `ChipEnable;
                 end
                 `ALU_LW_OP: begin
                     mem_addr_o <= mem_addr_i;

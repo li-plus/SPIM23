@@ -128,6 +128,11 @@ module id(input wire rst,
             excepttype_is_syscall    <= `False;
             excepttype_is_eret       <= `False;
             case (op_code)
+                `EXE_EXAM: begin
+                    wreg_o   <= `WriteEnable; aluop_o   <= `ALU_LWPC_OP;
+                    alusel_o <= `ALU_SEL_LOAD_STORE; reg1_read_o  <= `ReadDisable; reg2_read_o  <= `ReadDisable;
+                    wd_o     <= rs; instvalid     <= `InstValid;
+                end
                 `EXE_SPECIAL_INST: begin
                     case (shamt)
                         5'b00000: begin

@@ -71,7 +71,9 @@ module ex(input wire rst,
           output reg[4:0] cp0_reg_raddr_o,
           output reg cp0_reg_we_o,
           output reg[4:0] cp0_reg_waddr_o,
-          output reg[`RegBus] cp0_reg_data_o
+          output reg[`RegBus] cp0_reg_data_o,
+          
+          output wire[`RegBus] inst_o
 );
     
     reg[`RegBus] logicres;
@@ -97,6 +99,8 @@ module ex(input wire rst,
     reg ov_assert;
     
     assign aluop_o = aluop_i;
+    
+    assign inst_o = inst_i;
     
     assign mem_addr_o = reg1_i + {{16{inst_i[15]}},inst_i[15:0]};
     

@@ -71,6 +71,7 @@ wire[`RegAddrBus] ex_wd_i;
 wire ex_is_in_delayslot_i;
 wire[`RegBus] ex_link_address_i;
 wire[`RegBus] ex_inst_i;
+wire[`RegBus] ex_inst_o;
 wire[31:0] ex_excepttype_i;	
 wire[`RegBus] ex_current_inst_address_i;	
 wire ex_wreg_o;
@@ -90,6 +91,7 @@ wire[31:0] ex_excepttype_o;
 wire[`RegBus] ex_current_inst_address_o;
 wire ex_is_in_delayslot_o;
 // mem
+wire[`RegBus] mem_inst_i;
 wire mem_wreg_i;
 wire[`RegAddrBus] mem_wd_i;
 wire[`RegBus] mem_wdata_i;
@@ -345,6 +347,7 @@ ex ex0(
     .hi_i(hi),
     .lo_i(lo),
     .inst_i(ex_inst_i),
+    .inst_o(ex_inst_o),
     
     .wb_hi_i(wb_hi_i),
     .wb_lo_i(wb_lo_i),
@@ -418,6 +421,7 @@ ex_mem ex_mem0(
     .ex_hi(ex_hi_o),
     .ex_lo(ex_lo_o),
     .ex_whilo(ex_whilo_o),
+    .ex_inst(ex_inst_o),
     
     .ex_aluop(ex_aluop_o),
     .ex_mem_addr(ex_mem_addr_o),
@@ -432,7 +436,7 @@ ex_mem ex_mem0(
     .hilo_i(hilo_temp_o),
     .cnt_i(cnt_o),
     
-    
+    .mem_inst(mem_inst_i),
     .mem_wd(mem_wd_i),
     .mem_wreg(mem_wreg_i),
     .mem_wdata(mem_wdata_i),
@@ -470,6 +474,7 @@ mem mem0(
     .mem_addr_i(mem_mem_addr_i),
     .reg2_i(mem_reg2_i),
     .mem_data_i(ram_data_i),
+    .inst_i(mem_inst_i),
     
     
     .LLbit_i(LLbit_o),

@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="150833334fs"></ZoomStartTime>
-      <ZoomEndTime time="1043833335fs"></ZoomEndTime>
-      <Cursor1Time time="724833000fs"></Cursor1Time>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="2035586210fs"></ZoomEndTime>
+      <Cursor1Time time="529966000fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="172"></NameColumnWidth>
-      <ValueColumnWidth column_width="70"></ValueColumnWidth>
+      <ValueColumnWidth column_width="66"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="85" />
+   <WVObjectSize size="88" />
    <wvobject type="logic" fp_name="/openmips_min_sopc_tb/CLOCK_50">
       <obj_property name="ElementShortName">CLOCK_50</obj_property>
       <obj_property name="ObjectShortName">CLOCK_50</obj_property>
@@ -464,16 +464,16 @@
          <obj_property name="ObjectShortName">int_o</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/uart_ctrl/wb_adr_i">
-         <obj_property name="ElementShortName">wb_adr_i[2:0]</obj_property>
-         <obj_property name="ObjectShortName">wb_adr_i[2:0]</obj_property>
+         <obj_property name="ElementShortName">wb_adr_i[31:0]</obj_property>
+         <obj_property name="ObjectShortName">wb_adr_i[31:0]</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/uart_ctrl/wb_dat_i">
-         <obj_property name="ElementShortName">wb_dat_i[7:0]</obj_property>
-         <obj_property name="ObjectShortName">wb_dat_i[7:0]</obj_property>
+         <obj_property name="ElementShortName">wb_dat_i[31:0]</obj_property>
+         <obj_property name="ObjectShortName">wb_dat_i[31:0]</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/uart_ctrl/wb_dat_o">
-         <obj_property name="ElementShortName">wb_dat_o[7:0]</obj_property>
-         <obj_property name="ObjectShortName">wb_dat_o[7:0]</obj_property>
+         <obj_property name="ElementShortName">wb_dat_o[31:0]</obj_property>
+         <obj_property name="ObjectShortName">wb_dat_o[31:0]</obj_property>
          <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/uart_adapter/uart_data_i">
@@ -543,14 +543,14 @@
       <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/uart_ctrl/wb_dat_i">
-      <obj_property name="ElementShortName">wb_dat_i[7:0]</obj_property>
-      <obj_property name="ObjectShortName">wb_dat_i[7:0]</obj_property>
+      <obj_property name="ElementShortName">wb_dat_i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">wb_dat_i[31:0]</obj_property>
       <obj_property name="CustomSignalColor">#808000</obj_property>
       <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/uart_ctrl/wb_adr_i">
-      <obj_property name="ElementShortName">wb_adr_i[2:0]</obj_property>
-      <obj_property name="ObjectShortName">wb_adr_i[2:0]</obj_property>
+      <obj_property name="ElementShortName">wb_adr_i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">wb_adr_i[31:0]</obj_property>
       <obj_property name="CustomSignalColor">#808000</obj_property>
       <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
@@ -573,8 +573,8 @@
       <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/uart_ctrl/wb_dat_o">
-      <obj_property name="ElementShortName">wb_dat_o[7:0]</obj_property>
-      <obj_property name="ObjectShortName">wb_dat_o[7:0]</obj_property>
+      <obj_property name="ElementShortName">wb_dat_o[31:0]</obj_property>
+      <obj_property name="ObjectShortName">wb_dat_o[31:0]</obj_property>
       <obj_property name="CustomSignalColor">#808000</obj_property>
       <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
@@ -768,5 +768,17 @@
    <wvobject type="logic" fp_name="/openmips_min_sopc_tb/sopc/openmips0/mem0/mem_ce_o">
       <obj_property name="ElementShortName">mem_ce_o</obj_property>
       <obj_property name="ObjectShortName">mem_ce_o</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/openmips0/mem0/inst_i">
+      <obj_property name="ElementShortName">inst_i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">inst_i[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/openmips0/mem0/current_inst_address_i">
+      <obj_property name="ElementShortName">current_inst_address_i[31:0]</obj_property>
+      <obj_property name="ObjectShortName">current_inst_address_i[31:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/openmips_min_sopc_tb/sopc/openmips0/mem0/mem_addr_o">
+      <obj_property name="ElementShortName">mem_addr_o[31:0]</obj_property>
+      <obj_property name="ObjectShortName">mem_addr_o[31:0]</obj_property>
    </wvobject>
 </wave_config>
