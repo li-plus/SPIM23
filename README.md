@@ -1,5 +1,21 @@
 # SPIM-23
 
+SPIM-23 is a naive MIPS 32 CPU implementation. It is a course project of Computer Architecture, 2019 Autumn at THU.
+
+## Functionality
+
++ 45MHz main clock frequency
++ Wishbone bus
++ VGA frame buffer, Flash, BootROM, SRAM, GPIO and USB (no driver support, not properly tested)
++ TLB support
++ A tiny retro snake game in pure MIPS assembly
+
+## Game Demo
+
+![gif](docs/snake.gif)
+
+Please refer to **[SPIM23-Snake](https://github.com/zx1239856/SPIM23-Snake)** for more details.
+
 ## Address Allocation
 
 | Segment | Virtual Addr            | Physical Target  |
@@ -14,7 +30,11 @@
 | kseg1   | 0xBD000000 - 0xBD000004 | USB              |
 | kseg1   | 0xBFD003F8 - 0xBFD003FC | UART             |
 
-### What BootROM does
+## GPIO Registers
+
+Please download [gpio_spec.pdf](docs/gpio_spec.pdf) to see how to use GPIO registers.
+
+## BootROM
 
 ```assembly
 # BootROM loader
